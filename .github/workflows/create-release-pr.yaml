@@ -1,0 +1,58 @@
+---
+name: Manage new releases
+
+run-name: Prepare for new release via pull request
+
+on:
+  workflow_call:
+    inputs:
+      changelog:
+        type: string
+        description: Relative path to the CHANGELOG file
+        required: false
+        default: CHANGELOG.md
+      bump_type:
+        type: string
+        description: Semantic version bump type. Must be one of `major`, `minor`, `patch`, `prerelease`, or `exact`. Using the first four options will compute the next appropriate semantic version tag based on the most recent tag available from the main branch. Using `exact` is required for repositories without semantic version tags and allows specifying the exact next tag to use with the `exact_version` argument.
+        required: true
+      exact_version:
+        type: string
+        description: Exact version number to target. Only used if bump_type is set to `exact`.
+        required: false
+        default: ""
+
+jobs:
+  prepare-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Get the version of _this_ repository that is in use so that we can use
+      # sidecar scripts
+      - id: workflow-parsing
+        name: Get SHA of reusuable workflow
+        env:
+          REPO: github.repository
+          RUN_ID: github.run_id
+        run: |
+          SHA=$(gh api "repos/$REPO/actions/runs/$RUN_ID" | jq -r '.referenced_workflows.[] | select(.path|startswith("uclahs-cds/tool-create-release")).sha')
+          echo "SHA=$SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout reusable repository
+        uses: actions/checkout@v4
+        with:
+          repository: uclahs-cds/tool-create-release
+          ref: ${{ steps.workflow-parsing.outputs.SHA }}
+          path: reusable
+
+      - name: Checkout calling repository
+        uses: actions/checkout@v4
+        with:
+          path: caller
+
+      - name: Set up python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      # Install the semver package
+      - run: pip install semver==3.0.2
