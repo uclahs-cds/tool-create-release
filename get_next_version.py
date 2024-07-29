@@ -15,17 +15,19 @@ def get_next_tag():
     output_file = Path(os.environ["GITHUB_OUTPUT"])
 
     if bump_type == "exact":
-        return exact_version
+        last_version = "<ignored>"
+        next_version = exact_version
+    else:
+        # Get the most recent ancestor tag that matches r"v\d.*"
+        last_tag = subprocess.check_output(
+            ["git", "describe", "--tags", "--abbrev=0", "--match", "v[0-9]*"],
+            cwd=repo_dir
+        ).decode("utf-8")
 
-    # Get the most recent ancestor tag that matches r"v\d.*"
-    last_tag = subprocess.check_output(
-        ["git", "describe", "--tags", "--abbrev=0", "--match", "v[0-9]*"],
-        cwd=repo_dir
-    ).decode("utf-8")
+        # Strip off the leading v when parsing the version
+        last_version = semver.Version.parse(last_tag[1:])
+        next_version = str(last_version.next_version(part=bump_type))
 
-    # Strip off the leading v when parsing the version
-    last_version = semver.Version.parse(last_tag[1:])
-    next_version = last_version.next_version(part=bump_type)
     print(f"{last_version} -> {bump_type} -> {next_version}")
 
     with output_file.open(mode="w", encoding="utf-8") as outfile:
