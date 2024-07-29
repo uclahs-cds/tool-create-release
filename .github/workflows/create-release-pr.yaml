@@ -45,8 +45,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: uclahs-cds/tool-create-release
-          ref: ${{ steps.workflow-parsing.outputs.SHA }}
           path: reusable
+          ref: ${{ steps.workflow-parsing.outputs.SHA }}
+          token: ${{ secrets.UCLAHS_CDS_REPO_READ_TOKEN }}
 
       - name: Checkout calling repository
         uses: actions/checkout@v4
