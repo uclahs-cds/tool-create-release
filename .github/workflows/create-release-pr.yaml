@@ -53,6 +53,7 @@ jobs:
         with:
           path: caller
           fetch-depth: 0
+          fetch-tags: true
 
       - name: Set up python
         uses: actions/setup-python@v5
