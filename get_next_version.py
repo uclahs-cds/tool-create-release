@@ -17,13 +17,14 @@ def get_next_tag():
     if bump_type == "exact":
         return exact_version
 
-    # Get the most recent ancestor tag
+    # Get the most recent ancestor tag that matches r"v\d.*"
     last_tag = subprocess.check_output(
-        ["git", "describe", "--tags", "--abbrev=0"],
+        ["git", "describe", "--tags", "--abbrev=0", "--match", "v[0-9]*"],
         cwd=repo_dir
     ).decode("utf-8")
 
-    last_version = semver.Version.parse(last_tag)
+    # Strip off the leading v when parsing the version
+    last_version = semver.Version.parse(last_tag[1:])
     next_version = last_version.next_version(part=bump_type)
     print(f"{last_version} -> {bump_type} -> {next_version}")
 
