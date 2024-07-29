@@ -1,0 +1,12 @@
+---
+Category: tool
+Description: GitHub composite Action to update CHANGELOG.md and create new releases on request
+Maintainers:
+  - nwiltsie@mednet.ucla.edu
+Contributors:
+  - Nicholas Wiltsie
+Languages:
+  - python
+  - bash
+Dependencies: []
+References: ""
