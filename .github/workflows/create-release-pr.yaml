@@ -37,7 +37,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           ACTION_DATA=$(gh api "repos/$REPO/actions/runs/$RUN_ID")
-          echo "$ACTION_DATA"
+          echo "::debug::$ACTION_DATA"
           SHA=$(echo "$ACTION_DATA" | jq -r '.referenced_workflows | .[] | select(.path | startswith("uclahs-cds/tool-create-release")).sha')
           echo "SHA=$SHA" >> "$GITHUB_OUTPUT"
 
