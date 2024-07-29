@@ -36,10 +36,9 @@ jobs:
           RUN_ID: ${{ github.run_id }}
           GH_TOKEN: ${{ github.token }}
         run: |
-          jq --version
           ACTION_DATA=$(gh api "repos/$REPO/actions/runs/$RUN_ID")
           echo "$ACTION_DATA"
-          SHA=$(echo "$ACTION_DATA" | jq -r '.["referenced_workflows"].[] | select(.["path"]|startswith("uclahs-cds/tool-create-release")).["sha"]')
+          SHA=$(echo "$ACTION_DATA" | jq -r '.referenced_workflows | .[] | select(.path | startswith("uclahs-cds/tool-create-release")).sha')
           echo "SHA=$SHA" >> "$GITHUB_OUTPUT"
 
       - name: Checkout reusable repository
