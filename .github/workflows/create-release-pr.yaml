@@ -31,8 +31,8 @@ jobs:
       - id: workflow-parsing
         name: Get SHA of reusuable workflow
         env:
-          REPO: github.repository
-          RUN_ID: github.run_id
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
           GH_TOKEN: ${{ github.token }}
         run: |
           DATA=$(gh api "repos/$REPO/actions/runs/$RUN_ID")
