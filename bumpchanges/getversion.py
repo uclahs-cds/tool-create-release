@@ -44,18 +44,18 @@ def get_next_version():
     logger.notice("New version (tag): %s (%s)", next_version, next_tag)
 
     # Confirm that the corresponding git tag does not exist
-    try:
-        tag_ref = subprocess.check_output(
-            ["git", "rev-parse", "--verify", f"refs/tags/{next_tag}"],
-            cwd=repo_dir
-        )
+    tag_ref_proc = subprocess.run(
+        ["git", "rev-parse", "--verify", f"refs/tags/{next_tag}"],
+        cwd=repo_dir,
+        capture_output=True,
+        check=False,
+    )
+    if tag_ref_proc.returncode == 0:
         # Oops, that tag does exist
-        logger.error("Tag %s already exists! %s", next_tag, tag_ref)
+        logger.error(
+            "Tag %s already exists! %s", next_tag, tag_ref_proc.stdout.decode("utf-8")
+        )
         raise RuntimeError()
-
-    except subprocess.CalledProcessError:
-        # Tag doesn't exist yet - everything is good!
-        pass
 
     with output_file.open(mode="w", encoding="utf-8") as outfile:
         outfile.write(f"next_version={next_version}\n")

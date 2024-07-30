@@ -1,4 +1,5 @@
 "Module to handle logging to GitHub Actions."
+
 import logging
 
 
@@ -7,6 +8,7 @@ NOTICE = 25
 
 class NoticeLogger(logging.getLoggerClass()):
     "A logger subclass that has an additional NOTICE level."
+
     def notice(self, msg, *args, **kwargs):
         "Log the message at NOTICE level."
         self.log(NOTICE, msg, *args, **kwargs)
@@ -14,6 +16,7 @@ class NoticeLogger(logging.getLoggerClass()):
 
 class GHAFilter(logging.Filter):
     "A logging filter that plays nice with GitHub Actions output."
+
     prefixes = {
         logging.DEBUG: "::debug::",
         logging.INFO: "",
@@ -21,7 +24,6 @@ class GHAFilter(logging.Filter):
         logging.WARNING: "::warning::",
         logging.ERROR: "::error::",
         logging.CRITICAL: "::error::",
-
     }
 
     def filter(self, record):
@@ -45,6 +47,6 @@ def setup_logging():
     handler.addFilter(GHAFilter())
 
     # Set these handlers on the root logger of this module
-    root_logger = logging.getLogger(__name__.rpartition('.')[0])
+    root_logger = logging.getLogger(__name__.rpartition(".")[0])
     root_logger.addHandler(handler)
     root_logger.setLevel(logging.DEBUG)
