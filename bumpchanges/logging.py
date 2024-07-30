@@ -42,9 +42,9 @@ def setup_logging():
     handler = logging.StreamHandler()
     handler.setLevel(logging.DEBUG)
     handler.setFormatter(logging.Formatter("%(ghaprefix)s%(message)s"))
+    handler.addFilter(GHAFilter())
 
     # Set these handlers on the root logger of this module
     root_logger = logging.getLogger(__name__.rpartition('.')[0])
     root_logger.addHandler(handler)
     root_logger.setLevel(logging.DEBUG)
-    root_logger.addFilter(GHAFilter())
