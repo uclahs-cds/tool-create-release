@@ -37,7 +37,3 @@ def get_next_tag():
 
     with output_file.open(mode="w", encoding="utf-8") as outfile:
         outfile.write(f"next_version={next_version}\n")
-
-
-if __name__ == "__main__":
-    get_next_tag()

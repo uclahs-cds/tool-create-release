@@ -1,0 +1,47 @@
+[project]
+name = "bumpchanges"
+description = "Tools to normalize and version-bump CHANGELOG.md files."
+readme = "README.md"
+dynamic = ["version"]
+
+keywords = ["changelog", "ci"]
+
+requires-python = ">=3.7"
+
+dependencies = [
+    "linkify-it-py>=2.0.3",
+    "markdown-it-py>=3.0.0",
+    "mdformat-gfm>=0.3.6",
+    "mdformat>=0.7.17",
+    "semver>=3.0.2"
+]
+
+maintainers = [
+  {name = "Nicholas Wiltsie", email = "nwiltsie@mednet.ucla.edu"}
+]
+
+[project.scripts]
+get-next-version = "bumpchanges:getversion.get_next_version"
+bump-changelog = "bumpchanges:main"
+
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "bumpchanges/_version.py"
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+env_list =
+    py3.7
+    py3.12
+
+[testenv]
+deps = pytest
+commands = pytest tests --doctest-modules --junitxml=junit/test-results.xml
+"""
