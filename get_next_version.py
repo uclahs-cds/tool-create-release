@@ -19,10 +19,15 @@ def get_next_tag():
         next_version = exact_version
     else:
         # Get the most recent ancestor tag that matches r"v\d.*"
-        last_tag = subprocess.check_output(
-            ["git", "describe", "--tags", "--abbrev=0", "--match", "v[0-9]*"],
-            cwd=repo_dir
-        ).decode("utf-8")
+        try:
+            last_tag = subprocess.check_output(
+                ["git", "describe", "--tags", "--abbrev=0", "--match", "v[0-9]*"],
+                cwd=repo_dir,
+            ).decode("utf-8")
+        except subprocess.CalledProcessError:
+            # It seems that this is the first release
+            print("WARNING: No prior tag found!")
+            last_tag = "v0.0.0"
 
         # Strip off the leading v when parsing the version
         last_version = semver.Version.parse(last_tag[1:])
@@ -32,6 +37,7 @@ def get_next_tag():
 
     with output_file.open(mode="w", encoding="utf-8") as outfile:
         outfile.write(f"next_version={next_version}\n")
+
 
 if __name__ == "__main__":
     get_next_tag()
