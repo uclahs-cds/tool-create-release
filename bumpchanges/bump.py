@@ -1,7 +1,8 @@
-#!/usr/bin/env python3
 "Work with CHANGELOG.md files."
 
 import argparse
+import os
+
 from logging import getLogger
 
 from pathlib import Path

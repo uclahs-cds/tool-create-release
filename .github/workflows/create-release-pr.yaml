@@ -25,6 +25,10 @@ jobs:
   prepare-release:
     runs-on: ubuntu-latest
 
+    env:
+      BUMP_TYPE: ${{ inputs.bump_type }}
+      EXACT_VERSION: ${{ inputs.exact_version }}
+
     steps:
       # Get the version of _this_ repository that is in use so that we can use
       # sidecar scripts
@@ -65,14 +69,13 @@ jobs:
 
       # Get the next version using the package's script
       - id: get-next-version
-        run: get-next-version
+        run: get-next-version "$REPO_DIR" "$BUMP_TYPE" "$EXACT_VERSION"
         env:
           REPO_DIR: caller
-          BUMP_TYPE: ${{ inputs.bump_type }}
-          EXACT_VERSION: ${{ inputs.exact_version }}
 
       # Update the CHANGELOG
-      - run: bump-changelog "$CHANGELOG" "$URL" "$VERSION"
+      - id: bump-changelog
+        run: bump-changelog "$CHANGELOG" "$URL" "$VERSION"
         env:
           CHANGELOG: caller/${{ inputs.changelog }}
           URL: ${{ github.server_url }}/${{ github.repository }}

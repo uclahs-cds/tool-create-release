@@ -1,5 +1,6 @@
 "Get the next tag version."
 
+import argparse
 import os
 import subprocess
 
@@ -11,14 +12,9 @@ import semver
 from .logging import setup_logging
 
 
-def get_next_version():
+def get_next_version(repo_dir: Path, bump_type: str, exact_version: str) -> str:
     "Return the next tag after the appropriate bump type."
-    setup_logging()
     logger = getLogger(__name__)
-    repo_dir = os.environ["REPO_DIR"]
-    bump_type = os.environ["BUMP_TYPE"]
-    exact_version = os.environ["EXACT_VERSION"]
-    output_file = Path(os.environ["GITHUB_OUTPUT"])
 
     if bump_type == "exact":
         last_version = "<ignored>"
@@ -57,5 +53,23 @@ def get_next_version():
         )
         raise RuntimeError()
 
-    with output_file.open(mode="w", encoding="utf-8") as outfile:
-        outfile.write(f"next_version={next_version}\n")
+    return next_version
+
+
+def entrypoint():
+    "Main entrypoint for this module."
+    setup_logging()
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("repo_dir", type=Path)
+    parser.add_argument("bump_type", type=str)
+    parser.add_argument("exact_version", type=str)
+
+    args = parser.parse_args()
+    setup_logging()
+
+    next_version = get_next_version(args.repo_dir, args.bump_type, args.exact_version)
+
+    Path(os.environ["GITHUB_OUTPUT"]).write_text(
+        f"next_version={next_version}\n", encoding="utf-8"
+    )

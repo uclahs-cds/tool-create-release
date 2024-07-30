@@ -21,8 +21,8 @@ maintainers = [
 ]
 
 [project.scripts]
-get-next-version = "bumpchanges:getversion.get_next_version"
-bump-changelog = "bumpchanges:main"
+get-next-version = "bumpchanges:getversion.main"
+bump-changelog = "bumpchanges:bump.main"
 
 [build-system]
 requires = ["hatchling", "hatch-vcs"]
