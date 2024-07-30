@@ -5,7 +5,7 @@ import itertools
 import re
 
 from pathlib import Path
-from typing import ClassVar, Self
+from typing import ClassVar
 from dataclasses import dataclass, field
 
 import mdformat
@@ -111,7 +111,7 @@ class Version:
         return cls(version="Unreleased")
 
     @classmethod
-    def from_tokens(cls, tokens) -> Self:
+    def from_tokens(cls, tokens):
         "Parse a Version from a token stream."
         # Open, content, close
         if (
