@@ -1,8 +1,10 @@
 "Get the next tag version."
 
-from pathlib import Path
 import os
 import subprocess
+
+from logging import getLogger
+from pathlib import Path
 
 import semver
 
@@ -11,7 +13,8 @@ from .logging import setup_logging
 
 def get_next_version():
     "Return the next tag after the appropriate bump type."
-    logger = setup_logging()
+    setup_logging()
+    logger = getLogger(__name__)
     repo_dir = os.environ["REPO_DIR"]
     bump_type = os.environ["BUMP_TYPE"]
     exact_version = os.environ["EXACT_VERSION"]
