@@ -77,7 +77,7 @@ Merging this PR will trigger another workflow to create the release tag **v{vers
     )
 
 
-def main():
+def entrypoint():
     "Main entrypoint."
     parser = argparse.ArgumentParser()
     parser.add_argument("changelog", type=Path)
@@ -89,7 +89,3 @@ def main():
 
     update_changelog(args.changelog, args.repo_url, args.version)
     write_commit_details(args.version)
-
-
-if __name__ == "__main__":
-    main()
