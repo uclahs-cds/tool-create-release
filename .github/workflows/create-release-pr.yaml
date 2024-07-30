@@ -88,7 +88,9 @@ jobs:
         with:
           path: caller
           add-paths: ${{ inputs.changelog }}
-          branch: automation-create-release-${{ steps.get-next-version.outputs.next_version }}
           commit-message: ${{ steps.bump-changelog.outputs.commit_message }}
           title: ${{ steps.bump-changelog.outputs.pr_title }}
           body-path: ${{ steps.bump-changelog.outputs.pr_bodyfile }}
+          # This branch name format needs to be kept in-sync with the parser in
+          # create-new-tag.yaml
+          branch: automation-create-release-${{ steps.get-next-version.outputs.next_version }}

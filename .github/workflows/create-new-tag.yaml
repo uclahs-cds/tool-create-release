@@ -1,0 +1,49 @@
+---
+on:
+  workflow_call:
+
+jobs:
+  release-tag:
+    runs-on: ubuntu-latest
+
+    steps:
+      - id: parse-version
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Sanity-check that this was called from an appropriate merge event and
+            // extract the version number embedded in the branch name.
+            if (context.eventName !== 'pull_request') {
+              core.setFailed('Workflow requires pull_request events')
+              process.exit()
+            }
+
+            if (!context.payload.pull_request.merged || context.payload.pull_request.state !== 'closed') {
+              core.setFailed('Workflow should only be called on merged and closed PRs')
+              process.exit()
+            }
+
+            if (context.payload.pull_request.user.type !== 'bot') {
+              core.setFailed('Workflow should only be called for bot-generated release PRs')
+              process.exit()
+            }
+
+            // This regex needs to kept in-sync with the pattern in create-release-pr.yaml
+            const regex = /^automation-create-release-(.*)$/i
+            const parsed_version = context.payload.pull_request.head.label.match(regex)
+
+            if (!parsed_version || !parsed_version[1].length) {
+              core.setFailed('Workflow not called from an appropriate branch name')
+              process.exit()
+            }
+
+            github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: `v${new_version}`,
+              target_commitish: context.payload.pull_request.merge_commit_sha,
+              name: `Release ${new_version}`,
+              draft: true,
+              generate_release_notes: true,
+              body: `Automatically generated after merging #${context.payload.number}.`
+            })
