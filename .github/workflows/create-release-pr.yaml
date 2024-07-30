@@ -77,3 +77,10 @@ jobs:
           CHANGELOG: caller/${{ inputs.changelog }}
           URL: ${{ github.server_url }}/${{ github.repository }}
           VERSION: ${{ steps.get-next-version.outputs.next_version }}
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          path: caller
+          add-paths: ${{ inputs.changelog }}
+          branch: automation-create-release-${{ steps.get-next-version.outputs.next_version }}
