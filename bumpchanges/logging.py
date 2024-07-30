@@ -16,6 +16,7 @@ class NoticeLogger(logging.getLoggerClass()):
 
 class GHAFilter(logging.Filter):
     "A logging filter that plays nice with GitHub Actions output."
+    # pylint: disable=too-few-public-methods
 
     prefixes = {
         logging.DEBUG: "::debug::",

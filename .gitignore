@@ -10,6 +10,7 @@
 *.rd[as]
 
 # Python
+._version.py
 __pycache__/
 .pytest_cache/
 .Python

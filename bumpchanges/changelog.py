@@ -5,9 +5,9 @@ import itertools
 import logging
 import re
 
-from pathlib import Path
-from typing import ClassVar
 from dataclasses import dataclass, field
+from pathlib import Path
+from typing import ClassVar, Optional
 
 import mdformat
 from markdown_it import MarkdownIt
@@ -93,8 +93,8 @@ class Version:
     )
 
     version: str
-    date: str | None = None
-    link: str | None = None
+    date: Optional[str] = None
+    link: Optional[str] = None
 
     # This is a CommonChangelog modification
     notices: list = field(default_factory=list)
