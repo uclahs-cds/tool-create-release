@@ -25,7 +25,7 @@ class GHAFilter(logging.Filter):
     }
 
     def filter(self, record):
-        record.gha_prefix = self.prefixes[record.levelno]
+        record.ghaprefix = self.prefixes[record.levelno]
         return True
 
 
@@ -41,12 +41,10 @@ def setup_logging():
 
     handler = logging.StreamHandler()
     handler.setLevel(logging.DEBUG)
-    handler.addFilter(GHAFilter())
-    handler.setFormatter(logging.Formatter(
-        "%(ghaprefix)s%(message)s",
-        defaults={"ghaprefix": ""}
-    ))
+    handler.setFormatter(logging.Formatter("%(ghaprefix)s%(message)s"))
 
     # Set these handlers on the root logger of this module
     root_logger = logging.getLogger(__name__.rpartition('.')[0])
     root_logger.addHandler(handler)
+    root_logger.setLevel(logging.DEBUG)
+    root_logger.addFilter(GHAFilter())
