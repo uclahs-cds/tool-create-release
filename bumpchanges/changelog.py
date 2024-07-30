@@ -307,7 +307,9 @@ class Changelog:
         # Change the version and date of the unreleased section. For now
         # explicitly assume UTC, but that should probably be an input.
         self.versions[0].version = next_version
-        self.versions[0].date = datetime.datetime.now(datetime.timezone.utc).date().isoformat()
+        self.versions[0].date = (
+            datetime.datetime.now(datetime.timezone.utc).date().isoformat()
+        )
 
     def render(self) -> str:
         "Render the CHANGELOG to markdown."

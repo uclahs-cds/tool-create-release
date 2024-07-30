@@ -8,13 +8,12 @@ from pathlib import Path
 from .changelog import Changelog
 
 
-def update_changelog(
-    changelog_file: Path, repo_url: str, version: str
-) -> str:
+def update_changelog(changelog_file: Path, repo_url: str, version: str):
     "Rewrite a CHANGELOG file for a new release."
     changelog = Changelog(changelog_file, repo_url)
     changelog.update_version(version)
-    return changelog.render()
+
+    changelog_file.write_text(changelog.render(), encoding="utf-8")
 
 
 def main():
@@ -25,8 +24,8 @@ def main():
     parser.add_argument("version", type=str)
 
     args = parser.parse_args()
+    update_changelog(args.changelog, args.repo_url, args.version)
 
-    print(update_changelog(args.changelog, args.repo_url, args.version))
 
 if __name__ == "__main__":
     main()
