@@ -36,7 +36,7 @@ jobs:
 
             // This regex needs to kept in-sync with the pattern in create-release-pr.yaml
             const regex = /^automation-create-release-(.*)$/i
-            const parsed_version = context.payload.pull_request.head.label.match(regex)
+            const parsed_version = context.payload.pull_request.head.ref.match(regex)
 
             if (!parsed_version || !parsed_version[1].length) {
               core.setFailed('Workflow not called from an appropriate branch name')
