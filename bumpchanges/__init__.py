@@ -2,15 +2,23 @@
 "Work with CHANGELOG.md files."
 
 import argparse
+from logging import getLogger
 
 from pathlib import Path
 
-from .changelog import Changelog
+from .changelog import Changelog, ChangelogError
+from .logging import setup_logging
 
 
 def update_changelog(changelog_file: Path, repo_url: str, version: str):
     "Rewrite a CHANGELOG file for a new release."
-    changelog = Changelog(changelog_file, repo_url)
+
+    try:
+        changelog = Changelog(changelog_file, repo_url)
+    except ChangelogError:
+        getLogger(__name__).exception("Could not parse changelog")
+        raise
+
     changelog.update_version(version)
 
     changelog_file.write_text(changelog.render(), encoding="utf-8")
@@ -24,6 +32,8 @@ def main():
     parser.add_argument("version", type=str)
 
     args = parser.parse_args()
+    setup_logging()
+
     update_changelog(args.changelog, args.repo_url, args.version)
 
 

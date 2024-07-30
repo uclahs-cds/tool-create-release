@@ -29,13 +29,11 @@ class GHAFilter(logging.Filter):
         return True
 
 
-def setup_logging() -> logging.Logger:
-    "Set up logging to GitHub Actions and return the configured logger."
+def setup_logging():
+    "Set up logging to GitHub Actions.logger."
     # Does this need to be re-entrant like this?
-    logger_name = "bumpchanges"
-
     if logging.getLevelName("NOTICE") == NOTICE:
-        return logging.getLogger(logger_name)
+        return
 
     logging.addLevelName(NOTICE, "NOTICE")
 
@@ -49,7 +47,6 @@ def setup_logging() -> logging.Logger:
         defaults={"ghaprefix": ""}
     ))
 
-    root_logger = logging.getLogger(logger_name)
+    # Set these handlers on the root logger of this module
+    root_logger = logging.getLogger(__name__.rpartition('.')[0])
     root_logger.addHandler(handler)
-
-    return root_logger

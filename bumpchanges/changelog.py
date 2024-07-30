@@ -2,6 +2,7 @@
 
 import datetime
 import itertools
+import logging
 import re
 
 from pathlib import Path
@@ -132,6 +133,8 @@ class Version:
         else:
             raise ChangelogError(f"Invalid section heading: {tokens[1].content}")
 
+        logging.getLogger(__name__).info("Parsed new version %s", kwargs.get("version"))
+
         # The rest of the tokens should be the lists. Strip any rulers now.
         tokens = [token for token in tokens[3:] if token.type != "hr"]
 
@@ -176,7 +179,6 @@ class Version:
                 kwargs.setdefault("changed", []).extend(items)
 
             else:
-                print(tokens)
                 raise ChangelogError("Don't know how to handle these tokens")
 
         assert not tokens
@@ -251,6 +253,8 @@ class Changelog:
         self.changelog_file = changelog_file
         self.repo_url = repo_url
 
+        logger = logging.getLogger(__name__)
+
         groups = [[]]
 
         all_tokens = MarkdownIt("gfm-like").parse(
@@ -275,6 +279,7 @@ class Changelog:
                     assert nexttoken is not None
                     if re.match(r"^\[\d", nexttoken.content):
                         token.tag = "h2"
+                        logger.notice("Changing `%s` from h1 to h2", nexttoken.content)
 
                 if token.tag == "h2":
                     # A lot of our repositories have an issue where "Added",
@@ -285,6 +290,7 @@ class Changelog:
                         r"Add|Fix|Change|Remove", nexttoken.content, flags=re.IGNORECASE
                     ):
                         token.tag = "h3"
+                        logger.notice("Changing `%s` from h2 to h3", nexttoken.content)
                     else:
                         # Split split these tokens off into a new Version
                         groups.append([])
@@ -301,7 +307,9 @@ class Changelog:
     def update_version(self, next_version: str):
         "Move all unreleased changes under the new version."
         if not self.versions or self.versions[0].version != "Unreleased":
-            print("WARNING: No Unreleased section - adding a new empty section")
+            logging.getLogger(__name__).warning(
+                "No Unreleased section - adding a new empty section"
+            )
             self.versions.insert(0, Version.blank_unreleased())
 
         # Change the version and date of the unreleased section. For now
