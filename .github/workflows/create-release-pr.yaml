@@ -70,3 +70,10 @@ jobs:
           REPO_DIR: caller
           BUMP_TYPE: ${{ inputs.bump_type }}
           EXACT_VERSION: ${{ inputs.exact_version }}
+
+      # Update the CHANGELOG
+      - run: bump-changelog "$CHANGELOG" "$URL" "$VERSION"
+        env:
+          CHANGELOG: caller/${{ inputs.changelog }}
+          URL: ${{ github.server_url }}/${{ github.repository }}
+          VERSION: ${{ steps.get-next-version.outputs.next_version }}
