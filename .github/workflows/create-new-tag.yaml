@@ -43,6 +43,8 @@ jobs:
               process.exit()
             }
 
+            const new_version = parsed_version[1]
+
             github.rest.repos.createRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
