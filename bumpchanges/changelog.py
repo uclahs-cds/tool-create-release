@@ -133,7 +133,7 @@ class Version:
         else:
             raise ChangelogError(f"Invalid section heading: {tokens[1].content}")
 
-        logging.getLogger(__name__).info("Parsed new version %s", kwargs.get("version"))
+        logging.getLogger(__name__).info("Parsed version: %s", kwargs.get("version"))
 
         # The rest of the tokens should be the lists. Strip any rulers now.
         tokens = [token for token in tokens[3:] if token.type != "hr"]
