@@ -1,8 +1,4 @@
 ---
-name: Manage new releases
-
-run-name: Prepare for new release via pull request
-
 on:
   workflow_call:
     inputs:

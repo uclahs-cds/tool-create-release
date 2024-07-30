@@ -1,6 +1,7 @@
 "Get the next tag version."
 
 import argparse
+import re
 import os
 import subprocess
 
@@ -18,7 +19,16 @@ def get_next_version(repo_dir: Path, bump_type: str, exact_version: str) -> str:
 
     if bump_type == "exact":
         last_version = "<ignored>"
+        if not exact_version:
+            logger.error("Exact version requested, but no version supplied!")
+            raise RuntimeError()
+
+        if re.match(r"^v\d", exact_version):
+            logger.error("Input version `{exact_version}` should not have a leading `v`")
+            raise RuntimeError()
+
         next_version = exact_version
+
     else:
         # Get the most recent ancestor tag that matches r"v\d.*"
         try:
