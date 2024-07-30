@@ -60,10 +60,12 @@ jobs:
         with:
           python-version: '3.10'
 
-      # Install the semver package
-      - run: pip install semver==3.0.2
+      # Install the bundled package
+      - run: pip install ./reusable
 
-      - run: python reusable/get_next_version.py
+      # Get the next version using the package's script
+      - id: get-next-version
+        run: get-next-version
         env:
           REPO_DIR: caller
           BUMP_TYPE: ${{ inputs.bump_type }}
