@@ -7,7 +7,7 @@ from pathlib import Path
 import semver
 
 
-def get_next_tag():
+def get_next_version():
     "Return the next tag after the appropriate bump type."
     repo_dir = os.environ["REPO_DIR"]
     bump_type = os.environ["BUMP_TYPE"]
