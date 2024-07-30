@@ -29,8 +29,8 @@ jobs:
               process.exit()
             }
 
-            if (context.payload.pull_request.user.type !== 'bot') {
-              core.setFailed('Workflow should only be called for bot-generated release PRs')
+            if (!['Bot', 'Organization'].includes(context.payload.pull_request.user.type)) {
+              core.setFailed('Workflow should only be called for Bot- or Organization-generated release PRs')
               process.exit()
             }
 
