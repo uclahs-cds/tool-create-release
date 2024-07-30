@@ -3,6 +3,7 @@
 import datetime
 import itertools
 import logging
+import os
 import re
 
 from dataclasses import dataclass, field
@@ -304,7 +305,7 @@ class Changelog:
         if not self.versions:
             raise ChangelogError("No versions!")
 
-    def update_version(self, next_version: str):
+    def update_version(self, next_version: str, date: datetime.date):
         "Move all unreleased changes under the new version."
         if not self.versions or self.versions[0].version != "Unreleased":
             logging.getLogger(__name__).warning(
@@ -315,9 +316,8 @@ class Changelog:
         # Change the version and date of the unreleased section. For now
         # explicitly assume UTC, but that should probably be an input.
         self.versions[0].version = next_version
-        self.versions[0].date = (
-            datetime.datetime.now(datetime.timezone.utc).date().isoformat()
-        )
+        self.versions[0].date = date.isoformat()
+
 
     def render(self) -> str:
         "Render the CHANGELOG to markdown."

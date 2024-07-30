@@ -1,18 +1,20 @@
 "Work with CHANGELOG.md files."
 
 import argparse
+import datetime
+import logging
 import os
 import tempfile
+import zoneinfo
 
 from logging import getLogger
-
 from pathlib import Path
 
 from .changelog import Changelog, ChangelogError
 from .logging import setup_logging
 
 
-def update_changelog(changelog_file: Path, repo_url: str, version: str):
+def update_changelog(changelog_file: Path, repo_url: str, version: str, date: datetime.date):
     "Rewrite a CHANGELOG file for a new release."
 
     try:
@@ -21,7 +23,7 @@ def update_changelog(changelog_file: Path, repo_url: str, version: str):
         getLogger(__name__).exception("Could not parse changelog")
         raise
 
-    changelog.update_version(version)
+    changelog.update_version(version, date)
 
     changelog_file.write_text(changelog.render(), encoding="utf-8")
 
@@ -57,7 +59,7 @@ def write_commit_details(version: str):
         bodyfile.write(f"""\
 Update CHANGELOG in preparation for release **{version}**.
 
-Merging this PR will trigger another workflow to create the release tag **v{version}**."
+Merging this PR will trigger another workflow to create the release tag **v{version}**.
 
 | Input | Value |
 | ----- | ----- |
@@ -68,7 +70,7 @@ Merging this PR will trigger another workflow to create the release tag **v{vers
 
         outputs["pr_bodyfile"] = bodyfile.name
 
-    outputs["pr_title"] = f"Prepare for version **`{version}`**"
+    outputs["pr_title"] = f"Prepare for version `{version}`"
     outputs["commit_message"] = f"Update CHANGELOG for version `{version}`"
 
     Path(os.environ["GITHUB_OUTPUT"]).write_text(
@@ -87,5 +89,20 @@ def entrypoint():
     args = parser.parse_args()
     setup_logging()
 
-    update_changelog(args.changelog, args.repo_url, args.version)
+    try:
+        input_timezone = os.environ["CHANGELOG_TIMEZONE"]
+        try:
+            tzinfo = zoneinfo.ZoneInfo(input_timezone)
+        except zoneinfo.ZoneInfoNotFoundError:
+            logging.getLogger(__name__).warning(
+                "Time zone `%s` not found! Defaulting to UTC", input_timezone
+            )
+            tzinfo = datetime.timezone.utc
+    except KeyError:
+        logging.getLogger(__name__).notice("No time zone provided, defaulting to UTC")
+        tzinfo = datetime.timezone.utc
+
+    now_date = datetime.datetime.now(tzinfo).date()
+
+    update_changelog(args.changelog, args.repo_url, args.version, now_date)
     write_commit_details(args.version)

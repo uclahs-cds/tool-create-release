@@ -20,6 +20,11 @@ on:
         description: Exact version number to target. Only used if bump_type is set to `exact`.
         required: false
         default: ""
+      timezone:
+        type: string
+        description: IANA timezone to use when computing the current date
+        default: "America/Los_Angeles"
+        required: false
 
 jobs:
   prepare-release:
@@ -28,6 +33,7 @@ jobs:
     env:
       BUMP_TYPE: ${{ inputs.bump_type }}
       EXACT_VERSION: ${{ inputs.exact_version }}
+      CHANGELOG_TIMEZONE: ${{ inputs.timezone }}
 
     steps:
       # Get the version of _this_ repository that is in use so that we can use
