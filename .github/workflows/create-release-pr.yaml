@@ -87,3 +87,6 @@ jobs:
           path: caller
           add-paths: ${{ inputs.changelog }}
           branch: automation-create-release-${{ steps.get-next-version.outputs.next_version }}
+          commit-message: ${{ steps.bump-changelog.outputs.commit_message }}
+          title: ${{ steps.bump-changelog.outputs.pr_title }}
+          body-path: ${{ steps.bump-changelog.outputs.pr_bodyfile }}
