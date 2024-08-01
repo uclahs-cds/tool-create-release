@@ -34,21 +34,26 @@ module.exports = async ({ github, context, core }) => {
 
   const newVersion = parsedVersion[1]
 
-  await github.rest.repos.createRelease({
+  const isDraft = core.getBooleanInput('create-draft')
+
+  const releaseData = await github.rest.repos.createRelease({
     owner: context.repo.owner,
     repo: context.repo.repo,
     tag_name: `v${newVersion}`,
     target_commitish: context.payload.pull_request.merge_commit_sha,
     name: `Release ${newVersion}`,
-    draft: true,
+    draft: isDraft,
     generate_release_notes: true,
     body: `Automatically generated after merging #${context.payload.number}.`
   })
 
-  // Attempt to delete the release branch
-  await github.rest.git.deleteRef({
+  await github.rest.issues.createComment({
     owner: context.repo.owner,
     repo: context.repo.repo,
-    ref: `heads/${context.payload.pull_request.head.ref}`
+    issue_number: context.payload.number,
+    body: `*Bleep bloop, I am a robot.*
+
+A new release has been ${isDraft ? 'drafted' : 'created'} as ${releaseData.url}. Please review the details for accuracy.
+`
   })
 }

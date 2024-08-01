@@ -1,6 +1,11 @@
 ---
 on:
   workflow_call:
+    inputs:
+      create-draft:
+        description: If true (the default), draft the release for later manual approval.
+        type: boolean
+        default: true
 
 jobs:
   finalize-release:
@@ -30,6 +35,8 @@ jobs:
 
       - id: parse-version
         uses: actions/github-script@v7
+        env:
+          INPUT_CREATE_DRAFT: ${{ inputs.create-draft }}
         with:
           script: |
             const script = require('./scripts/finalize-release.js')
