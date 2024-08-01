@@ -47,6 +47,9 @@ module.exports = async ({ github, context, core }) => {
     body: `Automatically generated after merging #${context.payload.number}.`
   })
 
+  console.log(releaseData)
+  console.log(JSON.dumps(releaseData))
+
   await github.rest.issues.createComment({
     owner: context.repo.owner,
     repo: context.repo.repo,
