@@ -53,7 +53,7 @@ module.exports = async ({ github, context, core }) => {
     issue_number: context.payload.number,
     body: `*Bleep bloop, I am a robot.*
 
-A new release has been ${isDraft ? 'drafted' : 'created'} as ${releaseData.url}. Please review the details for accuracy.
+A new release has been ${isDraft ? 'drafted' : 'created'} as ${releaseData.html_url}. Please review the details for accuracy.
 `
   })
 }
