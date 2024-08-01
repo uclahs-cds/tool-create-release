@@ -34,7 +34,7 @@ module.exports = async ({ github, context, core }) => {
 
   const newVersion = parsedVersion[1]
 
-  const isDraft = core.getBooleanInput('create-draft', { required: false })
+  const isDraft = core.getBooleanInput('draft', { required: false })
 
   const releaseData = await github.rest.repos.createRelease({
     owner: context.repo.owner,
