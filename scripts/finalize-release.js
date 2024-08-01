@@ -48,7 +48,6 @@ module.exports = async ({ github, context, core }) => {
   })
 
   console.log(releaseData)
-  console.log(JSON.dumps(releaseData))
 
   await github.rest.issues.createComment({
     owner: context.repo.owner,
