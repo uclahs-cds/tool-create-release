@@ -47,15 +47,13 @@ module.exports = async ({ github, context, core }) => {
     body: `Automatically generated after merging #${context.payload.number}.`
   })
 
-  console.log(releaseData)
-
   await github.rest.issues.createComment({
     owner: context.repo.owner,
     repo: context.repo.repo,
     issue_number: context.payload.number,
     body: `*Bleep bloop, I am a robot.*
 
-A new release has been ${isDraft ? 'drafted' : 'created'} as ${releaseData.html_url}. Please review the details for accuracy.
+A new release has been ${isDraft ? 'drafted' : 'created'} as ${releaseData.data.html_url}. Please review the details for accuracy.
 `
   })
 }
