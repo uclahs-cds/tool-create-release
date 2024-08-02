@@ -6,14 +6,6 @@ import logging
 NOTICE = 25
 
 
-class NoticeLogger(logging.getLoggerClass()):
-    """A logger subclass that has an additional NOTICE level."""
-
-    def notice(self, msg, *args, **kwargs):
-        """Log the message at NOTICE level."""
-        self.log(NOTICE, msg, *args, **kwargs)
-
-
 class GHAFilter(logging.Filter):
     """A logging filter that plays nice with GitHub Actions output."""
 
@@ -40,8 +32,6 @@ def setup_logging():
         return
 
     logging.addLevelName(NOTICE, "NOTICE")
-
-    logging.setLoggerClass(NoticeLogger)
 
     handler = logging.StreamHandler()
     handler.setLevel(logging.DEBUG)

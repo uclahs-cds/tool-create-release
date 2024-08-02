@@ -13,6 +13,8 @@ import mdformat
 from markdown_it import MarkdownIt
 from markdown_it.token import Token
 
+from .logging import NOTICE
+
 
 class ChangelogError(Exception):
     """Indicate a fundamental problem with the CHANGELOG structure."""
@@ -54,8 +56,10 @@ def parse_bullet_list(tokens: list[Token]) -> list[Token]:
         if nesting == 0:
             break
 
-    if list_tokens[0].type != "bullet_list_open" or \
-            list_tokens[-1].type != "bullet_list_close":
+    if (
+        list_tokens[0].type != "bullet_list_open"
+        or list_tokens[-1].type != "bullet_list_close"
+    ):
         raise ChangelogError("Bullet list is malformed!")
 
     # Strip off the bullet list so that we can assert our own style and merge
@@ -286,7 +290,9 @@ class Changelog:
 
                     if re.match(r"^\[\d", nexttoken.content):
                         token.tag = "h2"
-                        logger.notice("Changing `%s` from h1 to h2", nexttoken.content)
+                        logger.log(
+                            NOTICE, "Changing `%s` from h1 to h2", nexttoken.content
+                        )
 
                 if token.tag == "h2":
                     # A lot of our repositories have an issue where "Added",
@@ -299,7 +305,9 @@ class Changelog:
                         r"Add|Fix|Change|Remove", nexttoken.content, flags=re.IGNORECASE
                     ):
                         token.tag = "h3"
-                        logger.notice("Changing `%s` from h2 to h3", nexttoken.content)
+                        logger.log(
+                            NOTICE, "Changing `%s` from h2 to h3", nexttoken.content
+                        )
                     else:
                         # Split split these tokens off into a new Version
                         groups.append([])

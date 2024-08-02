@@ -11,7 +11,7 @@ from logging import getLogger
 from pathlib import Path
 
 from .changelog import Changelog, ChangelogError
-from .logging import setup_logging
+from .logging import setup_logging, NOTICE
 
 
 def update_changelog(
@@ -103,7 +103,9 @@ def entrypoint():
             )
             tzinfo = datetime.timezone.utc
     except KeyError:
-        logging.getLogger(__name__).notice("No time zone provided, defaulting to UTC")
+        logging.getLogger(__name__).log(
+            NOTICE, "No time zone provided, defaulting to UTC"
+        )
         tzinfo = datetime.timezone.utc
 
     now_date = datetime.datetime.now(tzinfo).date()
