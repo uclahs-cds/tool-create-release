@@ -115,6 +115,7 @@ class Version:
     @classmethod
     def from_tokens(cls, tokens):
         """Parse a Version from a token stream."""
+        # pylint: disable=too-many-branches
         # Open, content, close
         if (
             len(tokens) < 3
