@@ -317,7 +317,6 @@ class Changelog:
         self.versions[0].version = next_version
         self.versions[0].date = date.isoformat()
 
-
     def render(self) -> str:
         "Render the CHANGELOG to markdown."
         renderer = mdformat.renderer.MDRenderer()

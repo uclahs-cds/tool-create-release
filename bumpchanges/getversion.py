@@ -24,7 +24,9 @@ def get_next_version(repo_dir: Path, bump_type: str, exact_version: str) -> str:
             raise RuntimeError()
 
         if re.match(r"^v\d", exact_version):
-            logger.error("Input version `{exact_version}` should not have a leading `v`")
+            logger.error(
+                "Input version `{exact_version}` should not have a leading `v`"
+            )
             raise RuntimeError()
 
         next_version = exact_version

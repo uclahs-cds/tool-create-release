@@ -14,7 +14,9 @@ from .changelog import Changelog, ChangelogError
 from .logging import setup_logging
 
 
-def update_changelog(changelog_file: Path, repo_url: str, version: str, date: datetime.date):
+def update_changelog(
+    changelog_file: Path, repo_url: str, version: str, date: datetime.date
+):
     "Rewrite a CHANGELOG file for a new release."
 
     try:
@@ -56,14 +58,16 @@ def write_commit_details(version: str):
     with tempfile.NamedTemporaryFile(
         mode="w", encoding="utf-8", dir=os.environ["GITHUB_WORKSPACE"], delete=False
     ) as bodyfile:
-        bodyfile.write(f"""\
+        bodyfile.write(
+            f"""\
 Update CHANGELOG in preparation for release **{version}**.
 
 Merging this PR will trigger another workflow to create the release tag **v{version}**.
 
 | Input | Value |
 | ----- | ----- |
-""")
+"""
+        )
 
         for key, value in body_values.items():
             bodyfile.write(f"| {key} | {value} |\n")
