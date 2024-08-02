@@ -82,7 +82,9 @@ def heading(level: int, children: list):
 
 HEADING_REPLACEMENTS = {
     "updated": "changed",
+    "change": "changed",
     "add": "added",
+    "fix": "fixed",
 }
 
 
