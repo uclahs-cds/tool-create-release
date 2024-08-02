@@ -13,3 +13,4 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 - Workflow to update CHANGELOG and open pre-release PRs
 - Workflow to create/draft releases after pre-release PR merge
+- "Dogfood" workflows to self-manage this repository's releases
