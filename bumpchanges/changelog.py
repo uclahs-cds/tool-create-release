@@ -54,8 +54,9 @@ def parse_bullet_list(tokens: list[Token]) -> list[Token]:
         if nesting == 0:
             break
 
-    assert list_tokens[0].type == "bullet_list_open"
-    assert list_tokens[-1].type == "bullet_list_close"
+    if list_tokens[0].type != "bullet_list_open" or \
+            list_tokens[-1].type != "bullet_list_close":
+        raise ChangelogError("Bullet list is malformed!")
 
     # Strip off the bullet list so that we can assert our own style and merge
     # lists
@@ -181,7 +182,8 @@ class Version:
             else:
                 raise ChangelogError("Don't know how to handle these tokens")
 
-        assert not tokens
+        if tokens:
+            raise ChangelogError("Leftover tokens!")
 
         return cls(**kwargs)
 
@@ -269,14 +271,18 @@ class Changelog:
                 ],
             )
         ):
-            assert token is not None
+            # This check is mostly to make pyright happy
+            if token is None:
+                raise RuntimeError("This should never happen")
 
             if token.type == "heading_open":
                 if token.tag == "h1":
                     # Several of our repositories have errors where versions
                     # are mistakenly H1s rather than H2s. Catch those cases and
                     # fix them up.
-                    assert nexttoken is not None
+                    if nexttoken is None:
+                        raise ChangelogError()
+
                     if re.match(r"^\[\d", nexttoken.content):
                         token.tag = "h2"
                         logger.notice("Changing `%s` from h1 to h2", nexttoken.content)
@@ -285,7 +291,9 @@ class Changelog:
                     # A lot of our repositories have an issue where "Added",
                     # "Fixed", etc. are mistakenly H2s rather than H3s. Catch those
                     # cases and fix them up.
-                    assert nexttoken is not None
+                    if nexttoken is None:
+                        raise ChangelogError()
+
                     if re.match(
                         r"Add|Fix|Change|Remove", nexttoken.content, flags=re.IGNORECASE
                     ):
