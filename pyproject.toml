@@ -6,7 +6,7 @@ dynamic = ["version"]
 
 keywords = ["changelog", "ci"]
 
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 
 dependencies = [
     "linkify-it-py>=2.0.3",
@@ -38,7 +38,7 @@ version-file = "bumpchanges/_version.py"
 legacy_tox_ini = """
 [tox]
 env_list =
-    py3.9
+    py3.10
     py3.12
 
 [testenv]
