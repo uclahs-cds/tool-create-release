@@ -11,4 +11,5 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Added
 
-- Initial commit
+- Workflow to update CHANGELOG and open pre-release PRs
+- Workflow to create/draft releases after pre-release PR merge

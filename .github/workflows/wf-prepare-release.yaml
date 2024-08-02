@@ -1,0 +1,96 @@
+---
+on:
+  workflow_call:
+    inputs:
+      changelog:
+        type: string
+        description: Relative path to the CHANGELOG file
+        required: false
+        default: CHANGELOG.md
+      bump_type:
+        type: string
+        description: Semantic version bump type. Must be one of `major`, `minor`, `patch`, `prerelease`, or `exact`. Using the first four options will compute the next appropriate semantic version tag based on the most recent tag available from the main branch. Using `exact` is required for repositories without semantic version tags and allows specifying the exact next tag to use with the `exact_version` argument.
+        required: true
+      exact_version:
+        type: string
+        description: Exact version number to target. Only used if bump_type is set to `exact`.
+        required: false
+        default: ""
+      timezone:
+        type: string
+        description: IANA timezone to use when computing the current date
+        default: "America/Los_Angeles"
+        required: false
+
+jobs:
+  prepare-release:
+    runs-on: ubuntu-latest
+
+    env:
+      BUMP_TYPE: ${{ inputs.bump_type }}
+      EXACT_VERSION: ${{ inputs.exact_version }}
+      CHANGELOG_TIMEZONE: ${{ inputs.timezone }}
+
+    steps:
+      # Get the version of _this_ repository that is in use so that we can use
+      # sidecar scripts
+      - id: workflow-parsing
+        name: Get SHA of reusuable workflow
+        env:
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ACTION_DATA=$(gh api "repos/$REPO/actions/runs/$RUN_ID")
+          echo "::debug::$ACTION_DATA"
+          SHA=$(echo "$ACTION_DATA" | jq -r '.referenced_workflows | .[] | select(.path | startswith("uclahs-cds/tool-create-release")).sha')
+          echo "SHA=$SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout reusable repository
+        uses: actions/checkout@v4
+        with:
+          repository: uclahs-cds/tool-create-release
+          path: reusable
+          ref: ${{ steps.workflow-parsing.outputs.SHA }}
+          token: ${{ secrets.UCLAHS_CDS_REPO_READ_TOKEN }}
+
+      - name: Checkout calling repository
+        uses: actions/checkout@v4
+        with:
+          path: caller
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Set up python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      # Install the bundled package
+      - run: pip install ./reusable
+
+      # Get the next version using the package's script
+      - id: get-next-version
+        run: get-next-version "$REPO_DIR" "$BUMP_TYPE" "$EXACT_VERSION"
+        env:
+          REPO_DIR: caller
+
+      # Update the CHANGELOG
+      - id: bump-changelog
+        run: bump-changelog "$CHANGELOG" "$URL" "$VERSION"
+        env:
+          CHANGELOG: caller/${{ inputs.changelog }}
+          URL: ${{ github.server_url }}/${{ github.repository }}
+          VERSION: ${{ steps.get-next-version.outputs.next_version }}
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          path: caller
+          add-paths: ${{ inputs.changelog }}
+          commit-message: ${{ steps.bump-changelog.outputs.commit_message }}
+          title: ${{ steps.bump-changelog.outputs.pr_title }}
+          body-path: ${{ steps.bump-changelog.outputs.pr_bodyfile }}
+          # This branch name format needs to be kept in-sync with the parser in
+          # create-new-tag.yaml
+          branch: automation-create-release-${{ steps.get-next-version.outputs.next_version }}
