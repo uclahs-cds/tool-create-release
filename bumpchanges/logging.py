@@ -1,4 +1,4 @@
-"Module to handle logging to GitHub Actions."
+"""Module to handle logging to GitHub Actions."""
 
 import logging
 
@@ -7,15 +7,15 @@ NOTICE = 25
 
 
 class NoticeLogger(logging.getLoggerClass()):
-    "A logger subclass that has an additional NOTICE level."
+    """A logger subclass that has an additional NOTICE level."""
 
     def notice(self, msg, *args, **kwargs):
-        "Log the message at NOTICE level."
+        """Log the message at NOTICE level."""
         self.log(NOTICE, msg, *args, **kwargs)
 
 
 class GHAFilter(logging.Filter):
-    "A logging filter that plays nice with GitHub Actions output."
+    """A logging filter that plays nice with GitHub Actions output."""
 
     # pylint: disable=too-few-public-methods
 
@@ -34,7 +34,7 @@ class GHAFilter(logging.Filter):
 
 
 def setup_logging():
-    "Set up logging to GitHub Actions.logger."
+    """Set up logging to GitHub Actions.logger."""
     # Does this need to be re-entrant like this?
     if logging.getLevelName("NOTICE") == NOTICE:
         return

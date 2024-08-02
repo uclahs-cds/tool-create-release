@@ -1,4 +1,4 @@
-"Work with CHANGELOG.md files."
+"""Work with CHANGELOG.md files."""
 
 import argparse
 import datetime
@@ -31,7 +31,7 @@ def update_changelog(
 
 
 def write_commit_details(version: str):
-    "Write text snippets for the eventual commit and pull request."
+    """Write text snippets for the eventual commit and pull request."""
     outputs = {}
 
     actor = os.environ["GITHUB_ACTOR"]
@@ -84,7 +84,7 @@ Merging this PR will trigger another workflow to create the release tag **v{vers
 
 
 def entrypoint():
-    "Main entrypoint."
+    """Main entrypoint."""
     parser = argparse.ArgumentParser()
     parser.add_argument("changelog", type=Path)
     parser.add_argument("repo_url", type=str)

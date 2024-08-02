@@ -1,4 +1,4 @@
-"Classes to handle parsing and updating CHANGELOG.md files."
+"""Classes to handle parsing and updating CHANGELOG.md files."""
 
 import datetime
 import itertools
@@ -15,15 +15,15 @@ from markdown_it.token import Token
 
 
 class ChangelogError(Exception):
-    "Indicate a fundamental problem with the CHANGELOG structure."
+    """Indicate a fundamental problem with the CHANGELOG structure."""
 
 
 class EmptyListError(Exception):
-    "Indicate that a section is empty and should be stripped."
+    """Indicate that a section is empty and should be stripped."""
 
 
 def parse_heading(tokens: list[Token]) -> tuple[str, Token]:
-    "Parse the `inline` element from the heading."
+    """Parse the `inline` element from the heading."""
     if (
         len(tokens) < 3
         or tokens[0].type != "heading_open"
@@ -39,7 +39,7 @@ def parse_heading(tokens: list[Token]) -> tuple[str, Token]:
 
 
 def parse_bullet_list(tokens: list[Token]) -> list[Token]:
-    "Consume tokens and return all of the child list_items."
+    """Consume tokens and return all of the child list_items."""
     # Parse the heading
     if not tokens or tokens[0].type != "bullet_list_open":
         raise EmptyListError()
@@ -63,7 +63,7 @@ def parse_bullet_list(tokens: list[Token]) -> list[Token]:
 
 
 def heading(level: int, children: list):
-    "Return a heading of the appropriate level."
+    """Return a heading of the appropriate level."""
 
     markup = "#" * level
     tag = f"h{level}"
@@ -83,7 +83,7 @@ HEADING_REPLACEMENTS = {
 
 @dataclass
 class Version:
-    "Class to help manage individual releases within CHANGELOG.md files."
+    """Class to help manage individual releases within CHANGELOG.md files."""
 
     link_heading_re: ClassVar = re.compile(
         r"^\[(?P<version>.+?)\]\((?P<link>.+?)\)(?:\s+-\s+(?P<date>.*))?$"
@@ -108,12 +108,12 @@ class Version:
 
     @classmethod
     def blank_unreleased(cls):
-        "Create a new empty Unreleased version."
+        """Create a new empty Unreleased version."""
         return cls(version="Unreleased")
 
     @classmethod
     def from_tokens(cls, tokens):
-        "Parse a Version from a token stream."
+        """Parse a Version from a token stream."""
         # Open, content, close
         if (
             len(tokens) < 3
@@ -186,7 +186,7 @@ class Version:
         return cls(**kwargs)
 
     def serialize(self):
-        "Yield a stream of markdown tokens describing this Version."
+        """Yield a stream of markdown tokens describing this Version."""
 
         link_kwargs = {}
         if self.link:
@@ -247,7 +247,7 @@ class Version:
 
 
 class Changelog:
-    "Class to help manage CHANGELOG.md files."
+    """Class to help manage CHANGELOG.md files."""
 
     def __init__(self, changelog_file: Path, repo_url: str):
         self.changelog_file = changelog_file
@@ -305,7 +305,7 @@ class Changelog:
             raise ChangelogError("No versions!")
 
     def update_version(self, next_version: str, date: datetime.date):
-        "Move all unreleased changes under the new version."
+        """Move all unreleased changes under the new version."""
         if not self.versions or self.versions[0].version != "Unreleased":
             logging.getLogger(__name__).warning(
                 "No Unreleased section - adding a new empty section"
@@ -318,7 +318,7 @@ class Changelog:
         self.versions[0].date = date.isoformat()
 
     def render(self) -> str:
-        "Render the CHANGELOG to markdown."
+        """Render the CHANGELOG to markdown."""
         renderer = mdformat.renderer.MDRenderer()
 
         options = {}

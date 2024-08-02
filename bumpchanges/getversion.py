@@ -1,4 +1,4 @@
-"Get the next tag version."
+"""Get the next tag version."""
 
 import argparse
 import re
@@ -14,7 +14,7 @@ from .logging import setup_logging
 
 
 def get_next_version(repo_dir: Path, bump_type: str, exact_version: str) -> str:
-    "Return the next tag after the appropriate bump type."
+    """Return the next tag after the appropriate bump type."""
     logger = getLogger(__name__)
 
     if bump_type == "exact":
@@ -69,7 +69,7 @@ def get_next_version(repo_dir: Path, bump_type: str, exact_version: str) -> str:
 
 
 def entrypoint():
-    "Main entrypoint for this module."
+    """Main entrypoint for this module."""
     setup_logging()
 
     parser = argparse.ArgumentParser()
