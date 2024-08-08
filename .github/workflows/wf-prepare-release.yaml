@@ -86,6 +86,7 @@ jobs:
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
         with:
+          token: ${{ secrets.UCLAHS_CDS_REPO_READ_TOKEN }}
           path: caller
           add-paths: ${{ inputs.changelog }}
           commit-message: ${{ steps.bump-changelog.outputs.commit_message }}
