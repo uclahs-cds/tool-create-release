@@ -14,15 +14,6 @@ module.exports = async ({ github, context, core }) => {
     process.exit()
   }
 
-  if (
-    !['Bot', 'Organization'].includes(context.payload.pull_request.user.type)
-  ) {
-    core.setFailed(
-      'Workflow should only be called for Bot- or Organization-generated release PRs'
-    )
-    process.exit()
-  }
-
   // This regex needs to kept in-sync with the pattern in create-release-pr.yaml
   const regex = /^automation-create-release-(.*)$/i
   const parsedVersion = context.payload.pull_request.head.ref.match(regex)
