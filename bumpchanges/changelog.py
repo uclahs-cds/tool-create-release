@@ -350,7 +350,7 @@ class Changelog:
             if version.version == "Unreleased":
                 this_tag = None
             else:
-                this_tag = f"v{version.version}"
+                this_tag = f"{version.version}"
 
             if prior_tag:
                 href = f"{self.repo_url}/compare/{prior_tag}...{this_tag if this_tag else 'HEAD'}"
