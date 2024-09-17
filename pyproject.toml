@@ -24,6 +24,7 @@ maintainers = [
 get-next-version = "bumpchanges:getversion.entrypoint"
 bump-changelog = "bumpchanges:bump.entrypoint"
 alias-release = "bumpchanges:alias.entrypoint"
+bump-version-files = "bumpchanges:updatefiles.entrypoint"
 
 [build-system]
 requires = ["hatchling", "hatch-vcs"]

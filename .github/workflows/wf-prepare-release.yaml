@@ -26,6 +26,11 @@ on:
         description: IANA timezone to use when computing the current date
         default: "America/Los_Angeles"
         required: false
+      version_files:
+        type: string
+        description: Comma-separated list of relative paths to files with version numbers that should be updated. Every file must have exactly one line that looks like `version = "xxxx"` - some effort is made to handle different quoting styles, leading underscores, etc.
+        required: false
+        default: ""
 
 jobs:
   prepare-release:
@@ -88,6 +93,13 @@ jobs:
           CHANGELOG: caller/${{ inputs.changelog }}
           URL: ${{ github.server_url }}/${{ github.repository }}
           VERSION: ${{ steps.get-next-version.outputs.next_version }}
+
+      - id: bump-version-files
+        run: bump-version-files "$VERSION" "$VERSIONFILES"
+        env:
+          VERSION: ${{ steps.get-next-version.outputs.next_version }}
+          VERSIONFILES: ${{ inputs.version_files }}
+
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
