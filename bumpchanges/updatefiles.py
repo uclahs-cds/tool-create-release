@@ -1,13 +1,10 @@
-"""Work with CHANGELOG.md files."""
+"""Update files with a new version number."""
 
 import argparse
-import difflib
 import logging
 import os
 import re
-import tempfile
 
-from logging import getLogger
 from pathlib import Path
 
 from .logging import setup_logging, NOTICE
@@ -15,11 +12,13 @@ from .logging import setup_logging, NOTICE
 
 VERSION_REGEX = re.compile(r"""
     ^                       # Start of line, followed by any whitespace
-    (?<prefix>              # Open `prefix` capture group
+    (?P<prefix>             # Open `prefix` capture group
         \s*                 # Any whitespace
+        (?P<vquote>['"]?)   # `'`, `"`, or nothing (saved as `vquote` group)
         (?:__)?             # Optional literal `__`
         version             # Literal `version`
         (?:__)?             # Optional literal `__`
+        (?P=vquote)         # `'`, `"`, or nothing (back-reference to `vquote`)
         (?:
             \s*             # Any whitespace
             [=:]?           # `=`, `:`, or nothing
@@ -28,8 +27,9 @@ VERSION_REGEX = re.compile(r"""
         (?P<quote>['"]?)    # `'`, `"`, or nothing (saved as `quote` group)
     )                       # Close `prefix` capture group
     (?P<version>.*?)        # Non-greedy match of all characters (the version)
-    (?<suffix>              # Open `suffix` capture group
+    (?P<suffix>             # Open `suffix` capture group
         (?P=quote)          # `'`, `"`, or nothing (back-reference to `quote`)
+        ,?                  # Optional comma
         \s*                 # Any whitespace
         (?:\#.*)?           # Optional `#` followed by anyanything
     )                       # Close `suffix` capture group
@@ -43,7 +43,7 @@ def update_file(version: str, version_file: Path):
     """Update a single file with the new version number."""
     original_text = version_file.read_text(encoding="utf-8")
     updated_text, update_count = VERSION_REGEX.subn(
-        r"(?P=prefix)" + version + r"(?P=suffix)",
+        r"\g<prefix>" + version + r"\g<suffix>",
         original_text
     )
 
