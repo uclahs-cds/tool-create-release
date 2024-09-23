@@ -379,7 +379,7 @@ class Changelog:
             else:
                 # _Do_ add leading `v`s. Versions numbers never have
                 # leading `v`s, tags always have leading `v`s.
-                this_tag = f"v{version.version}"
+                this_tag = f"v{version.version.lstrip('v')}"
 
             if prior_tag:
                 href = f"{self.repo_url}/compare/{prior_tag}...{this_tag if this_tag else 'HEAD'}"
