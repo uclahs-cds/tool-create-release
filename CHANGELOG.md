@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- Documentation that versions must begin with a digit
+- Documentation that git tags must begin with a `v`
+
+### Fixed
+
+- Strip leading `v`s from versions in the CHANGELOG files
+
 ## [0.0.2] - 2024-08-19
 
 ### Fixed
