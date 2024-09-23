@@ -125,10 +125,7 @@ class Version:
     wrong_h1_re: ClassVar = re.compile(r"^\[v?\d")
 
     # Regex to match H2 category-like headers taht should be H3s
-    wrong_h2_re: ClassVar = re.compile(
-        r"Add|Fix|Change|Remove",
-        flags=re.IGNORECASE
-    )
+    wrong_h2_re: ClassVar = re.compile(r"Add|Fix|Change|Remove", flags=re.IGNORECASE)
 
     UNRELEASED_VERSION: ClassVar = "Unreleased"
 
@@ -184,8 +181,7 @@ class Version:
         # a digit
         if cls.leading_v_re.match(kwargs["version"]):
             logging.getLogger(__name__).warning(
-                "Stripping leading `v` from Changelog version `%s`",
-                kwargs["version"]
+                "Stripping leading `v` from Changelog version `%s`", kwargs["version"]
             )
             kwargs["version"] = kwargs["version"][1:]
 
@@ -371,8 +367,7 @@ class Changelog:
         """Move all unreleased changes under the new version."""
         if not self.versions or self.versions[0].version != Version.UNRELEASED_VERSION:
             logging.getLogger(__name__).warning(
-                "No %s section - adding a new empty section",
-                Version.UNRELEASED_VERSION
+                "No %s section - adding a new empty section", Version.UNRELEASED_VERSION
             )
             self.versions.insert(0, Version.blank_unreleased())
 

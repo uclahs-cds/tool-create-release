@@ -18,9 +18,7 @@ changelog_updates_key = pytest.StashKey[list[ChangelogUpdate]]()
 
 
 def pytest_configure(config: pytest.Config) -> None:
-    """
-    Configure plugin by loading the Changelog data.
-    """
+    """Configure plugin by loading the Changelog data."""
     resource_path = Path(__file__).resolve().parent.joinpath("resources")
     changelogs_file = resource_path / "changelogs.json"
     with changelogs_file.open(mode="r", encoding="utf-8") as infile:
@@ -55,9 +53,7 @@ def pytest_configure(config: pytest.Config) -> None:
 
 
 def pytest_generate_tests(metafunc: pytest.Metafunc):
-    """
-    Inject parameters for the 'changelog_update' fixture.
-    """
+    """Inject parameters for the 'changelog_update' fixture."""
     if "changelog_update" in metafunc.fixturenames:
         metafunc.parametrize(
             "changelog_update", metafunc.config.stash[changelog_updates_key]

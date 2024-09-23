@@ -17,7 +17,7 @@ from .logging import setup_logging, NOTICE
 def update_changelog(
     changelog_file: Path, repo_url: str, version: str, date: datetime.date
 ):
-    "Rewrite a CHANGELOG file for a new release."
+    """Rewrite a CHANGELOG file for a new release."""
 
     try:
         changelog = Changelog(changelog_file, repo_url)
