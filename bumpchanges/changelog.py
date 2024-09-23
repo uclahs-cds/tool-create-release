@@ -92,13 +92,43 @@ HEADING_REPLACEMENTS = {
 class Version:
     """Class to help manage individual releases within CHANGELOG.md files."""
 
+    # Regex to match versions with embedded links, with or without dates
+    # Will match:
+    #   [v1.2.3](https://foo.bar) - 2020-01-01
+    #   [1.2.3](https://foo.bar) - 2020-01-01
+    #   [1.2.3](https://foo.bar)
+    #   [badversion](https://foo.bar)
     link_heading_re: ClassVar = re.compile(
         r"^\[(?P<version>.+?)\]\((?:.+?)\)(?:\s+-\s+(?P<date>.*))?$"
     )
+
+    # Regex to match versions, with or without dates
+    # Will match:
+    #   [1.2.3] - 2020-01-01
+    #   [badversion]
+    #   1.2.3 - 2020-01-01
+    #   1.2.3
+    #   badversion
     heading_re: ClassVar = re.compile(
         r"^\[?(?P<version>.+?)\]?(?:\s+-\s+(?P<date>.*))?$"
     )
+
+    # Regex to match versions with leading `v`s (for removal)
     leading_v_re: ClassVar = re.compile(r"^[vV]\d")
+
+    # Regex to match H1 version-like headers that should be H2s
+    # Will match:
+    #   [v1...
+    #   [1....
+    # Will not match:
+    #   [ver...
+    wrong_h1_re: ClassVar = re.compile(r"^\[v?\d")
+
+    # Regex to match H2 category-like headers taht should be H3s
+    wrong_h2_re: ClassVar = re.compile(
+        r"Add|Fix|Change|Remove",
+        flags=re.IGNORECASE
+    )
 
     UNRELEASED_VERSION: ClassVar = "Unreleased"
 
@@ -306,7 +336,7 @@ class Changelog:
                     if nexttoken is None:
                         raise ChangelogError()
 
-                    if re.match(r"^\[\d", nexttoken.content):
+                    if Version.wrong_h1_re.match(nexttoken.content):
                         token.tag = "h2"
                         logger.log(
                             NOTICE, "Changing `%s` from h1 to h2", nexttoken.content
@@ -319,9 +349,7 @@ class Changelog:
                     if nexttoken is None:
                         raise ChangelogError()
 
-                    if re.match(
-                        r"Add|Fix|Change|Remove", nexttoken.content, flags=re.IGNORECASE
-                    ):
+                    if Version.wrong_h2_re.match(nexttoken.content):
                         token.tag = "h3"
                         logger.log(
                             NOTICE, "Changing `%s` from h2 to h3", nexttoken.content
