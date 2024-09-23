@@ -12,6 +12,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 - Documentation that versions must begin with a digit
 - Documentation that git tags must begin with a `v`
+- Template workflows to copy
+- Enable Dependabot for GitHub Actions, pip, and template workflows
 
 ### Fixed
 
