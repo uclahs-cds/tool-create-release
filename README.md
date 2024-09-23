@@ -15,6 +15,8 @@ These workflows make the following assumptions:
 
 ## Usage
 
+Usage of this tool requires adding two workflows to each calling repository. Complete versions of these workflows can be copied from the [templates/](templates/) directory.
+
 `wf-prepare-release.yaml` is triggered manually (via a `workflow_dispatch`) and takes the following actions:
 
 1. Compute the target version number based on existing tags and user input for `major`/`minor`/`patch`/`prerelease`.
@@ -26,87 +28,6 @@ These workflows make the following assumptions:
 1. Create a new release with auto-generated notes and the target tag.
   * By default the new release is a draft, so no public release or tag are created without user intervention.
 1. Comment on the release PR with a link to the new release.
-
-## Example Usage
-
-Usage of this tool requires adding two workflows to each calling repository:
-
-**`prepare-release.yaml`**
-
-```yaml
----
-name: Prepare new release
-
-run-name: Open PR for new ${{ inputs.bump_type }} release
-
-on:
-  workflow_dispatch:
-    inputs:
-      bump_type:
-        type: choice
-        description: >-
-          Semantic version bump type. Using `exact` is required for repositories
-          without semantic version tags and allows specifying the exact next tag
-          to use with the `exact_version` argument.
-        required: true
-        options:
-          - major
-          - minor
-          - patch
-          - prerelease
-          - exact
-      exact_version:
-        type: string
-        description: >-
-          Exact version number to target. Only used if bump_type is set to
-          `exact`. Do not include a leading `v`.
-        required: false
-        default: ''
-
-permissions:
-  actions: read
-  contents: write
-  pull-requests: write
-
-jobs:
-  prepare-release:
-    uses: uclahs-cds/tool-create-release/.github/workflows/wf-prepare-release.yaml@v1
-    with:
-      bump_type: ${{ inputs.bump_type }}
-      exact_version: ${{ inputs.exact_version }}
-    # Secrets are only required until tool-create-release is made public
-    secrets: inherit
-```
-
-**`finalize-release.yaml`**
-
-```yaml
----
-name: Finalize release
-
-on:
-  pull_request:
-    branches:
-      - main
-    types:
-      - closed
-
-permissions:
-  actions: read
-  contents: write
-  pull-requests: write
-
-jobs:
-  finalize-release:
-    # This conditional ensures that the reusable workflow is only run for
-    # release pull requests. The called workflow repeats these checks.
-    if: ${{ github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'automation-create-release') }}
-    uses: uclahs-cds/tool-create-release/.github/workflows/wf-finalize-release.yaml@v1
-    with:
-      draft: true
-    # Secrets are only required until tool-create-release is made public
-    secrets: inherit
-```
 
 ## Parameters
 
