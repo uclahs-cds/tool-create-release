@@ -93,11 +93,13 @@ class Version:
     """Class to help manage individual releases within CHANGELOG.md files."""
 
     link_heading_re: ClassVar = re.compile(
-        r"^\[(?P<version>.+?)\]\((?P<link>.+?)\)(?:\s+-\s+(?P<date>.*))?$"
+        r"^\[(?P<version>.+?)\]\((?:.+?)\)(?:\s+-\s+(?P<date>.*))?$"
     )
     heading_re: ClassVar = re.compile(
         r"^\[?(?P<version>.+?)\]?(?:\s+-\s+(?P<date>.*))?$"
     )
+
+    UNRELEASED_VERSION: ClassVar = "Unreleased"
 
     version: str
     date: Optional[str] = None
@@ -116,11 +118,15 @@ class Version:
     @classmethod
     def blank_unreleased(cls):
         """Create a new empty Unreleased version."""
-        return cls(version="Unreleased")
+        return cls(version=cls.UNRELEASED_VERSION)
 
     @classmethod
     def from_tokens(cls, tokens):
-        """Parse a Version from a token stream."""
+        """
+        Parse a Version from a token stream.
+
+        Leading `v`s will be stripped from the version name.
+        """
         # pylint: disable=too-many-branches
         # Open, content, close
         if (
@@ -142,6 +148,15 @@ class Version:
             raise ChangelogError(f"Invalid section heading: {tokens[1].content}")
 
         logging.getLogger(__name__).info("Parsed version: %s", kwargs.get("version"))
+
+        # Strip any leading `v`s from versions, as long as they are followed by
+        # a digit
+        if re.match(r"[vV]\d", kwargs["version"]):
+            logging.getLogger(__name__).warning(
+                "Stripping leading `v` from Changelog version `%s`",
+                kwargs["version"]
+            )
+            kwargs["version"] = kwargs["version"][1:]
 
         # The rest of the tokens should be the lists. Strip any rulers now.
         tokens = [token for token in tokens[3:] if token.type != "hr"]
@@ -325,9 +340,10 @@ class Changelog:
 
     def update_version(self, next_version: str, date: datetime.date):
         """Move all unreleased changes under the new version."""
-        if not self.versions or self.versions[0].version != "Unreleased":
+        if not self.versions or self.versions[0].version != Version.UNRELEASED_VERSION:
             logging.getLogger(__name__).warning(
-                "No Unreleased section - adding a new empty section"
+                "No %s section - adding a new empty section",
+                Version.UNRELEASED_VERSION
             )
             self.versions.insert(0, Version.blank_unreleased())
 
@@ -357,10 +373,12 @@ class Changelog:
         prior_tag = None
 
         for version in reversed(self.versions):
-            if version.version == "Unreleased":
+            if version.version == Version.UNRELEASED_VERSION:
                 this_tag = None
             else:
-                this_tag = f"{version.version}"
+                # _Do_ add leading `v`s. Versions numbers never have
+                # leading `v`s, tags always have leading `v`s.
+                this_tag = f"v{version.version}"
 
             if prior_tag:
                 href = f"{self.repo_url}/compare/{prior_tag}...{this_tag if this_tag else 'HEAD'}"

@@ -32,7 +32,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ---
 
 
-## [2.5.0] - 2024-01-01
+## [v2.5.0] - 2024-01-01
 
 ## change
 
