@@ -4,7 +4,6 @@ import json
 import datetime
 
 from collections import namedtuple
-from typing import List
 from pathlib import Path
 
 import pytest
@@ -15,7 +14,7 @@ ChangelogUpdate = namedtuple(
 )
 
 # Named stash keys for storing the ChangelogUpdate objects between hook calls
-changelog_updates_key = pytest.StashKey[List[ChangelogUpdate]]()
+changelog_updates_key = pytest.StashKey[list[ChangelogUpdate]]()
 
 
 def pytest_configure(config: pytest.Config) -> None:
