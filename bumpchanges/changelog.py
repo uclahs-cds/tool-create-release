@@ -98,6 +98,7 @@ class Version:
     heading_re: ClassVar = re.compile(
         r"^\[?(?P<version>.+?)\]?(?:\s+-\s+(?P<date>.*))?$"
     )
+    leading_v_re: ClassVar = re.compile(r"^[vV]\d")
 
     UNRELEASED_VERSION: ClassVar = "Unreleased"
 
@@ -151,7 +152,7 @@ class Version:
 
         # Strip any leading `v`s from versions, as long as they are followed by
         # a digit
-        if re.match(r"[vV]\d", kwargs["version"]):
+        if cls.leading_v_re.match(kwargs["version"]):
             logging.getLogger(__name__).warning(
                 "Stripping leading `v` from Changelog version `%s`",
                 kwargs["version"]
