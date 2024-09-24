@@ -1,0 +1,11 @@
+[
+  {
+    "original": "original.md",
+    "formatted": "formatted.md",
+    "bumps": {
+      "2.5.3": "2.5.3.md"
+    },
+    "url": "https://github.com/foo/bar",
+    "date": "2024-05-05"
+  }
+]

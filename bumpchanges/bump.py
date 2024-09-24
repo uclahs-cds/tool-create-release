@@ -11,13 +11,13 @@ from logging import getLogger
 from pathlib import Path
 
 from .changelog import Changelog, ChangelogError
-from .logging import setup_logging
+from .logging import setup_logging, NOTICE
 
 
 def update_changelog(
     changelog_file: Path, repo_url: str, version: str, date: datetime.date
 ):
-    "Rewrite a CHANGELOG file for a new release."
+    """Rewrite a CHANGELOG file for a new release."""
 
     try:
         changelog = Changelog(changelog_file, repo_url)
@@ -103,7 +103,9 @@ def entrypoint():
             )
             tzinfo = datetime.timezone.utc
     except KeyError:
-        logging.getLogger(__name__).notice("No time zone provided, defaulting to UTC")
+        logging.getLogger(__name__).log(
+            NOTICE, "No time zone provided, defaulting to UTC"
+        )
         tzinfo = datetime.timezone.utc
 
     now_date = datetime.datetime.now(tzinfo).date()

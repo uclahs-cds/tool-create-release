@@ -13,6 +13,8 @@ import mdformat
 from markdown_it import MarkdownIt
 from markdown_it.token import Token
 
+from .logging import NOTICE
+
 
 class ChangelogError(Exception):
     """Indicate a fundamental problem with the CHANGELOG structure."""
@@ -54,8 +56,10 @@ def parse_bullet_list(tokens: list[Token]) -> list[Token]:
         if nesting == 0:
             break
 
-    if list_tokens[0].type != "bullet_list_open" or \
-            list_tokens[-1].type != "bullet_list_close":
+    if (
+        list_tokens[0].type != "bullet_list_open"
+        or list_tokens[-1].type != "bullet_list_close"
+    ):
         raise ChangelogError("Bullet list is malformed!")
 
     # Strip off the bullet list so that we can assert our own style and merge
@@ -78,7 +82,9 @@ def heading(level: int, children: list):
 
 HEADING_REPLACEMENTS = {
     "updated": "changed",
+    "change": "changed",
     "add": "added",
+    "fix": "fixed",
 }
 
 
@@ -86,12 +92,42 @@ HEADING_REPLACEMENTS = {
 class Version:
     """Class to help manage individual releases within CHANGELOG.md files."""
 
+    # Regex to match versions with embedded links, with or without dates
+    # Will match:
+    #   [v1.2.3](https://foo.bar) - 2020-01-01
+    #   [1.2.3](https://foo.bar) - 2020-01-01
+    #   [1.2.3](https://foo.bar)
+    #   [badversion](https://foo.bar)
     link_heading_re: ClassVar = re.compile(
-        r"^\[(?P<version>.+?)\]\((?P<link>.+?)\)(?:\s+-\s+(?P<date>.*))?$"
+        r"^\[(?P<version>.+?)\]\((?:.+?)\)(?:\s+-\s+(?P<date>.*))?$"
     )
+
+    # Regex to match versions, with or without dates
+    # Will match:
+    #   [1.2.3] - 2020-01-01
+    #   [badversion]
+    #   1.2.3 - 2020-01-01
+    #   1.2.3
+    #   badversion
     heading_re: ClassVar = re.compile(
         r"^\[?(?P<version>.+?)\]?(?:\s+-\s+(?P<date>.*))?$"
     )
+
+    # Regex to match versions with leading `v`s (for removal)
+    leading_v_re: ClassVar = re.compile(r"^[vV]\d")
+
+    # Regex to match H1 version-like headers that should be H2s
+    # Will match:
+    #   [v1...
+    #   [1....
+    # Will not match:
+    #   [ver...
+    wrong_h1_re: ClassVar = re.compile(r"^\[v?\d")
+
+    # Regex to match H2 category-like headers taht should be H3s
+    wrong_h2_re: ClassVar = re.compile(r"Add|Fix|Change|Remove", flags=re.IGNORECASE)
+
+    UNRELEASED_VERSION: ClassVar = "Unreleased"
 
     version: str
     date: Optional[str] = None
@@ -110,11 +146,15 @@ class Version:
     @classmethod
     def blank_unreleased(cls):
         """Create a new empty Unreleased version."""
-        return cls(version="Unreleased")
+        return cls(version=cls.UNRELEASED_VERSION)
 
     @classmethod
     def from_tokens(cls, tokens):
-        """Parse a Version from a token stream."""
+        """
+        Parse a Version from a token stream.
+
+        Leading `v`s will be stripped from the version name.
+        """
         # pylint: disable=too-many-branches
         # Open, content, close
         if (
@@ -136,6 +176,14 @@ class Version:
             raise ChangelogError(f"Invalid section heading: {tokens[1].content}")
 
         logging.getLogger(__name__).info("Parsed version: %s", kwargs.get("version"))
+
+        # Strip any leading `v`s from versions, as long as they are followed by
+        # a digit
+        if cls.leading_v_re.match(kwargs["version"]):
+            logging.getLogger(__name__).warning(
+                "Stripping leading `v` from Changelog version `%s`", kwargs["version"]
+            )
+            kwargs["version"] = kwargs["version"][1:]
 
         # The rest of the tokens should be the lists. Strip any rulers now.
         tokens = [token for token in tokens[3:] if token.type != "hr"]
@@ -284,9 +332,11 @@ class Changelog:
                     if nexttoken is None:
                         raise ChangelogError()
 
-                    if re.match(r"^\[\d", nexttoken.content):
+                    if Version.wrong_h1_re.match(nexttoken.content):
                         token.tag = "h2"
-                        logger.notice("Changing `%s` from h1 to h2", nexttoken.content)
+                        logger.log(
+                            NOTICE, "Changing `%s` from h1 to h2", nexttoken.content
+                        )
 
                 if token.tag == "h2":
                     # A lot of our repositories have an issue where "Added",
@@ -295,11 +345,11 @@ class Changelog:
                     if nexttoken is None:
                         raise ChangelogError()
 
-                    if re.match(
-                        r"Add|Fix|Change|Remove", nexttoken.content, flags=re.IGNORECASE
-                    ):
+                    if Version.wrong_h2_re.match(nexttoken.content):
                         token.tag = "h3"
-                        logger.notice("Changing `%s` from h2 to h3", nexttoken.content)
+                        logger.log(
+                            NOTICE, "Changing `%s` from h2 to h3", nexttoken.content
+                        )
                     else:
                         # Split split these tokens off into a new Version
                         groups.append([])
@@ -315,9 +365,9 @@ class Changelog:
 
     def update_version(self, next_version: str, date: datetime.date):
         """Move all unreleased changes under the new version."""
-        if not self.versions or self.versions[0].version != "Unreleased":
+        if not self.versions or self.versions[0].version != Version.UNRELEASED_VERSION:
             logging.getLogger(__name__).warning(
-                "No Unreleased section - adding a new empty section"
+                "No %s section - adding a new empty section", Version.UNRELEASED_VERSION
             )
             self.versions.insert(0, Version.blank_unreleased())
 
@@ -347,10 +397,12 @@ class Changelog:
         prior_tag = None
 
         for version in reversed(self.versions):
-            if version.version == "Unreleased":
+            if version.version == Version.UNRELEASED_VERSION:
                 this_tag = None
             else:
-                this_tag = f"{version.version}"
+                # _Do_ add leading `v`s. Versions numbers never have
+                # leading `v`s, tags always have leading `v`s.
+                this_tag = f"v{version.version.lstrip('v')}"
 
             if prior_tag:
                 href = f"{self.repo_url}/compare/{prior_tag}...{this_tag if this_tag else 'HEAD'}"

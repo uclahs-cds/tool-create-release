@@ -2,6 +2,19 @@
 
 This pair of reusable workflows manage the complexity of creating and tagging new software releases on GitHub.
 
+## Versioning Standards
+
+These workflows make the following assumptions:
+
+* Versions begin with a digit. This applies whether the project is using [semantic versioning](https://semver.org/) or not.
+* Git tags associated with a version begin with a `v`.
+
+`1.2.3`, `1.alpha`, and `4.2` are all acceptable versions, and will be tagged in git as `v1.2.3`, `v1.alpha`, and `v4.2` respectively.
+
+`alpha`, `one.two`, and `v1.2.3` are **not** acceptable versions.
+
+## Usage
+
 `wf-prepare-release.yaml` is triggered manually (via a `workflow_dispatch`) and takes the following actions:
 
 1. Compute the target version number based on existing tags and user input for `major`/`minor`/`patch`/`prerelease`.

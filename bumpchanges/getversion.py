@@ -10,7 +10,7 @@ from pathlib import Path
 
 import semver
 
-from .logging import setup_logging
+from .logging import setup_logging, NOTICE
 
 
 def get_next_version(repo_dir: Path, bump_type: str, exact_version: str) -> str:
@@ -49,7 +49,7 @@ def get_next_version(repo_dir: Path, bump_type: str, exact_version: str) -> str:
 
     logger.info("%s -> %s -> %s", last_version, bump_type, next_version)
     next_tag = f"v{next_version}"
-    logger.notice("New version (tag): %s (%s)", next_version, next_tag)
+    logger.log(NOTICE, "New version (tag): %s (%s)", next_version, next_tag)
 
     # Confirm that the corresponding git tag does not exist
     tag_ref_proc = subprocess.run(
