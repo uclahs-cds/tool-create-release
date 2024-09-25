@@ -46,6 +46,7 @@ def setup_logging():
 
 class LoggingMixin:
     """A mixin class for logging."""
+
     # pylint: disable=too-few-public-methods
 
     @property

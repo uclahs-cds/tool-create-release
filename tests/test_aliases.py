@@ -8,6 +8,7 @@ import semver
 
 from bumpchanges.alias import ReleaseAliaser, IneligibleAlias, AliasError, Release
 
+
 # Sample test case to mock _dereference_tags
 @pytest.fixture(name="aliaser")
 def mock_aliaser_internals(tmp_path):
@@ -33,9 +34,9 @@ def mock_aliaser_internals(tmp_path):
         Release("", "v2.1.0", False, False),
     ]
 
-    with patch.multiple(ReleaseAliaser,
-                    _dereference_git_tags=Mock(),
-                    _get_github_release_tags=Mock()):
+    with patch.multiple(
+        ReleaseAliaser, _dereference_git_tags=Mock(), _get_github_release_tags=Mock()
+    ):
         aliaser = ReleaseAliaser(tmp_path)
         for tag, commit in tag_to_commit_map.items():
             aliaser._add_git_tag(tag, commit)

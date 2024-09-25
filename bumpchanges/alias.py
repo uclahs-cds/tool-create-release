@@ -19,6 +19,7 @@ from .logging import setup_logging, NOTICE, LoggingMixin
 @dataclass
 class Release:
     """A representation of a GitHub release."""
+
     # These names match the attributes returned by the GitHub API
     # pylint: disable=invalid-name
     name: str
@@ -80,36 +81,44 @@ class ReleaseAliaser(LoggingMixin):
         self._dereference_git_tags()
         self._get_github_release_tags()
 
-
     def assert_invariants(self):
         """Confirm that the collected data is in a reasonable state."""
         # All releases must have corresponding git tags
-        if unknown_tags := self.tag_to_release_map.keys() - self.tag_to_commit_map.keys():
+        if (
+            unknown_tags := self.tag_to_release_map.keys()
+            - self.tag_to_commit_map.keys()
+        ):
             raise AliasError(
                 f"GitHub reports tags that are not visible locally: {unknown_tags}"
             )
 
         # All semantic version tags must also be git tags
-        if unknown_tags := self.tag_to_version_map.keys() - self.tag_to_commit_map.keys():
+        if (
+            unknown_tags := self.tag_to_version_map.keys()
+            - self.tag_to_commit_map.keys()
+        ):
             raise AliasError(
                 f"Invalid data state - non-git version tags exist: {unknown_tags}"
             )
 
         # Issue warnings about SemVer tags not associated with a release
-        for tag in sorted(self.tag_to_version_map.keys() - self.tag_to_release_map.keys()):
+        for tag in sorted(
+            self.tag_to_version_map.keys() - self.tag_to_release_map.keys()
+        ):
             self.logger.warning(
-                "SemVer tag `%s` does not have a matching GitHub Release.",
-                tag
+                "SemVer tag `%s` does not have a matching GitHub Release.", tag
             )
 
         # Issue warnings about releases not associated with SemVer tags
-        for tag in sorted(self.tag_to_release_map.keys() - self.tag_to_version_map.keys()):
+        for tag in sorted(
+            self.tag_to_release_map.keys() - self.tag_to_version_map.keys()
+        ):
             release = self.tag_to_release_map[tag]
             self.logger.warning(
                 "Github Release `%s` uses the non-SemVer tag `%s`. "
                 "All Releases should use SemVer tags.",
                 release.name,
-                tag
+                tag,
             )
 
     def _dereference_git_tags(self):
@@ -163,22 +172,22 @@ class ReleaseAliaser(LoggingMixin):
     def _get_github_release_tags(self):
         """Get all release tags and release data from GitHub."""
         for release_dict in json.loads(
-                subprocess.check_output(
-                    [
-                        "gh",
-                        "release",
-                        "list",
-                        "--json",
-                        ",".join((
-                            "name",
-                            "tagName",
-                            "isDraft",
-                            "isPrerelease",
-                        ))
-                    ],
-                    cwd=self.repo_dir,
-                )
-                ):
+            subprocess.check_output(
+                [
+                    "gh",
+                    "release",
+                    "list",
+                    "--json",
+                    ",".join((
+                        "name",
+                        "tagName",
+                        "isDraft",
+                        "isPrerelease",
+                    )),
+                ],
+                cwd=self.repo_dir,
+            )
+        ):
             self._add_github_release(Release(**release_dict))
 
     def _add_github_release(self, release: Release):
@@ -210,10 +219,12 @@ class ReleaseAliaser(LoggingMixin):
 
             # Ignore prereleases (either SemVer or GitHub), drafts, and
             # different major releases
-            if release.isDraft \
-                    or release.isPrerelease \
-                    or version.prerelease \
-                    or version.major != major_version:
+            if (
+                release.isDraft
+                or release.isPrerelease
+                or version.prerelease
+                or version.major != major_version
+            ):
                 continue
 
             eligible_tags.append(tag)
@@ -235,12 +246,13 @@ class ReleaseAliaser(LoggingMixin):
             other_tags = [
                 tag
                 for tag, commit in self.tag_to_commit_map.items()
-                if commit == aliased_commit
-                and tag != target_alias
+                if commit == aliased_commit and tag != target_alias
             ]
 
             if target_tag in other_tags:
-                self.logger.log(NOTICE, "Alias `%s` is already up-to-date!", target_alias)
+                self.logger.log(
+                    NOTICE, "Alias `%s` is already up-to-date!", target_alias
+                )
                 return
 
             if other_tags:
@@ -307,7 +319,7 @@ def entrypoint():
         logging.getLogger(__name__).log(
             NOTICE,
             "Ref `%s` is not a tag - this workflow should not have been called",
-            args.changed_ref
+            args.changed_ref,
         )
         sys.exit(1)
 
@@ -317,12 +329,14 @@ def entrypoint():
         logging.getLogger(__name__).log(
             NOTICE,
             "Tag `%s` is not a semantic version - not updating any aliases",
-            tag_re.group(1)
+            tag_re.group(1),
         )
         sys.exit(0)
 
     if changed_version.major < 1:
-        logging.getLogger(__name__).log(NOTICE, "This workflow only updates `v1` and above")
+        logging.getLogger(__name__).log(
+            NOTICE, "This workflow only updates `v1` and above"
+        )
         sys.exit(0)
 
     aliaser = ReleaseAliaser(args.repo_dir)
