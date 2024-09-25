@@ -1,0 +1,53 @@
+---
+on:
+  workflow_call:
+
+jobs:
+  alias-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Get the version of _this_ repository that is in use so that we can use
+      # sidecar scripts
+      - id: workflow-parsing
+        name: Get SHA of reusuable workflow
+        env:
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ACTION_DATA=$(gh api "repos/$REPO/actions/runs/$RUN_ID")
+          echo "::debug::$ACTION_DATA"
+          SHA=$(echo "$ACTION_DATA" | jq -r '.referenced_workflows | .[] | select(.path | startswith("uclahs-cds/tool-create-release")).sha')
+          echo "SHA=$SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout reusable repository
+        uses: actions/checkout@v4
+        with:
+          repository: uclahs-cds/tool-create-release
+          path: reusable
+          ref: ${{ steps.workflow-parsing.outputs.SHA }}
+          token: ${{ secrets.UCLAHS_CDS_REPO_READ_TOKEN }}
+
+      # This is necessary so that the `gh` cli application will work
+      # (actions/checkout caches the git credentials)
+      - name: Checkout calling repository
+        uses: actions/checkout@v4
+        with:
+          path: caller
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Set up python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      # Install the bundled package
+      - run: pip install ./reusable
+
+      # Update the alias if necessary
+      - id: alias-release
+        run: alias-release "$REPO_DIR" "$GITHUB_REF"
+        env:
+          REPO_DIR: caller
