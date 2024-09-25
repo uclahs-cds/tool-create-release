@@ -2,10 +2,11 @@
 
 import argparse
 import json
+import logging
+import operator
 import re
 import subprocess
-import operator
-import logging
+import sys
 
 from dataclasses import dataclass
 from pathlib import Path
@@ -43,6 +44,18 @@ class AliasError(Exception):
     """
 
 
+def tag_to_semver(tag: str) -> semver.version.Version:
+    """
+    Return the Version associated with this git tag.
+
+    Raises ValueError for invalid tags.
+    """
+    if not tag.startswith("v"):
+        raise ValueError(f"Tag `{tag}` doesn't start with a `v`")
+
+    return semver.Version.parse(tag[1:])
+
+
 class ReleaseAliaser(LoggingMixin):
     """A class to manage aliasing release tags."""
 
@@ -53,25 +66,37 @@ class ReleaseAliaser(LoggingMixin):
 
         # Map between existing tags and commit hashes, with annotated tags
         # dereferenced
-        self.tag_to_commit_map = self._dereference_tags()
+        self.tag_to_commit_map: dict[str, str] = {}
 
         # Tags associated with a release on GitHub
-        self.tag_to_release_map = self._get_github_releases()
+        self.tag_to_release_map: dict[str, Release] = {}
 
         # Map between existing tags and semantic versions
-        self.tag_to_version_map = self._parse_semver_tags()
+        self.tag_to_version_map: dict[str, semver.version.Version] = {}
 
-        # Verify data integrity - all releases must have tags
+        # Fill in all data
+        self._dereference_git_tags()
+        self._get_github_release_tags()
+
+
+    def assert_invariants(self):
+        """Confirm that the collected data is in a reasonable state."""
+        # All releases must have corresponding git tags
         if unknown_tags := self.tag_to_release_map.keys() - self.tag_to_commit_map.keys():
             raise AliasError(
                 f"GitHub reports tags that are not visible locally: {unknown_tags}"
             )
 
+        # All semantic version tags must also be git tags
+        if unknown_tags := self.tag_to_version_map.keys() - self.tag_to_commit_map.keys():
+            raise AliasError(
+                f"Invalid data state - non-git version tags exist: {unknown_tags}"
+            )
+
         # Issue warnings about SemVer tags not associated with a release
         for tag in sorted(self.tag_to_version_map.keys() - self.tag_to_release_map.keys()):
             self.logger.warning(
-                "SemVer tag `%s` does not have a matching GitHub Release. "
-                "Please create the Release or remove the tag.",
+                "SemVer tag `%s` does not have a matching GitHub Release.",
                 tag
             )
 
@@ -85,10 +110,9 @@ class ReleaseAliaser(LoggingMixin):
                 tag
             )
 
-
-    def _dereference_tags(self) -> dict[str, str]:
+    def _dereference_git_tags(self):
         """
-        Return a dictionary mapping tags to commit hashes.
+        Map all git tags to commit hashes.
 
         Annotated tags are dereferenced to point to the raw commit.
         """
@@ -117,14 +141,21 @@ class ReleaseAliaser(LoggingMixin):
 
         # Update all of the annotated tags with the dereferenced commits
         tag_to_commit_map.update(dereferenced_tags)
+        for tag, commit in tag_to_commit_map.items():
+            self._add_git_tag(tag, commit)
 
-        return tag_to_commit_map
+    def _add_git_tag(self, tag: str, commit: str):
+        """Shim method to make it easier to test."""
+        self.tag_to_commit_map[tag] = commit
 
+        try:
+            self.tag_to_version_map[tag] = tag_to_semver(tag)
+        except ValueError as err:
+            self.logger.info(err)
 
-    def _get_github_releases(self) -> dict[str, Release]:
-        """Return all non-prerelease, non-draft release tags from GitHub."""
-        releases = [
-            Release(**item) for item in json.loads(
+    def _get_github_release_tags(self):
+        """Get all release tags and release data from GitHub."""
+        for release_dict in json.loads(
                 subprocess.check_output(
                     [
                         "gh",
@@ -140,94 +171,25 @@ class ReleaseAliaser(LoggingMixin):
                     ],
                     cwd=self.repo_dir,
                 )
-            )
-        ]
+                ):
+            self._add_github_release(Release(**release_dict))
 
-        return {release.tagName: release for release in releases}
+    def _add_github_release(self, release: Release):
+        """Shim method to make it easier to test."""
+        self.tag_to_release_map[release.tagName] = release
 
-    def _parse_semver_tags(self) -> dict[str, semver.version.Version]:
-        """Return a dictionary mapping valid input tags to semantic versions."""
-        tag_to_version_map = {}
-
-        for git_tag in sorted(self.tag_to_commit_map.keys()):
-            if not git_tag.startswith("v"):
-                logging.debug("Tag `%s` doesn't start with a `v`", git_tag)
-                continue
-
-            try:
-                tag_to_version_map[git_tag] = semver.Version.parse(git_tag[1:])
-                logging.debug(
-                    "Tag %s -> Version %s", git_tag, tag_to_version_map[git_tag]
-                )
-            except ValueError:
-                logging.debug(
-                    "%s (from %s) is not valid SemVer", git_tag[1:], git_tag
-                )
-
-        return tag_to_version_map
-
-    def _get_major_version_and_alias(self, changed_tag: str) -> tuple[int, str]:
-        """Return a tuple of the major version and alias tag."""
-        # Only act if the changed tag is a semantic version tag
-        if not changed_tag.startswith("v"):
-            raise IneligibleAlias(f"Changed tag `{changed_tag}` doesn't start with a `v`")
-
-        try:
-            major_version = semver.Version.parse(changed_tag[1:]).major
-            target_alias = f"v{major_version}"
-        except ValueError as err:
-            raise IneligibleAlias(f"Changed tag `{changed_tag}` is not in SemVer format") from err
-
-        self.logger.info(
-            "Tag `%s` changed - evaluating tag alias `%s` for major version `%d`",
-            changed_tag,
-            target_alias,
-            major_version
-        )
-
-        if target_alias in self.tag_to_commit_map:
-            other_tags = [
-                tag
-                for tag, commit in self.tag_to_commit_map.items()
-                if commit == self.tag_to_commit_map[target_alias]
-                and tag != target_alias
-            ]
-
-            if other_tags:
-                self.logger.log(
-                    NOTICE,
-                    "Tag %s currently points to tag(s): %s (commit %s)",
-                    target_alias,
-                    other_tags,
-                    self.tag_to_commit_map[target_alias],
-                )
-            else:
-                self.logger.log(
-                    NOTICE,
-                    "Tag %s currently points to untagged commit: %s",
-                    target_alias,
-                    self.tag_to_commit_map[target_alias],
-                )
-
-        else:
-            self.logger.log(NOTICE, "Tag %s does not exist")
-
-        return (major_version, target_alias)
-
-
-    def compute_alias_action(self, changed_tag: str) -> tuple[str, str]:
+    def compute_alias_action(self, major_version: int) -> tuple[str, str]:
         """
         Return a tuple of (alias, target) strings showing the necessary change.
 
         An example return value is ("v2", "v2.1.0"), meaning that the tag "v2"
         should be updated to point to the existing tag "v2.1.0".
         """
+        self.assert_invariants()
 
-        # Find the highest release for this major version
-        major_version, target_alias = self._get_major_version_and_alias(changed_tag)
+        target_alias = f"v{major_version}"
 
         # Find all semantic version tags that are associated with GitHub releases
-
         eligible_tags = []
 
         for tag in self.tag_to_commit_map:
@@ -252,18 +214,46 @@ class ReleaseAliaser(LoggingMixin):
         eligible_tags.sort(key=lambda x: self.tag_to_version_map[x])
 
         if not eligible_tags:
-            raise IneligibleAlias("No eligible release tags alias `{target_alias}`")
+            raise IneligibleAlias("No eligible release tags for alias `{target_alias}`")
 
         target_tag = eligible_tags[-1]
-        self.logger.log(NOTICE, "Alias `%s` should point to `%s`", target_alias, target_tag)
-
-        if self.tag_to_commit_map[target_tag] == self.tag_to_commit_map.get(target_alias):
-            raise IneligibleAlias(f"`{target_alias}` is already up-to-date!")
+        self.logger.info("Alias `%s` should point to `%s`", target_alias, target_tag)
 
         return (target_alias, target_tag)
 
     def update_alias(self, target_alias: str, target_tag: str):
         """Actually update the alias and push it to GitHub."""
+
+        if aliased_commit := self.tag_to_commit_map.get(target_alias):
+            other_tags = [
+                tag
+                for tag, commit in self.tag_to_commit_map.items()
+                if commit == aliased_commit
+                and tag != target_alias
+            ]
+
+            if target_tag in other_tags:
+                self.logger.log(NOTICE, "Alias `%s` is already up-to-date!", target_alias)
+                return
+
+            if other_tags:
+                self.logger.info(
+                    "Alias `%s` currently points to tag(s): %s (commit %s)",
+                    target_alias,
+                    other_tags,
+                    aliased_commit,
+                )
+            else:
+                self.logger.info(
+                    NOTICE,
+                    "Alias `%s` currently points to untagged commit: %s",
+                    target_alias,
+                    aliased_commit,
+                )
+
+        else:
+            self.logger.info("Alias `%s` does not exist", target_alias)
+
         # Create the tag locally (forcing if necessary)
         subprocess.run(
             [
@@ -287,6 +277,14 @@ class ReleaseAliaser(LoggingMixin):
             check=True,
         )
 
+        self.logger.log(
+            NOTICE,
+            "Alias `%s` updated to `%s` (commit %s)",
+            target_alias,
+            target_tag,
+            self.tag_to_commit_map[target_tag],
+        )
+
 
 def entrypoint():
     """Main entrypoint for this module."""
@@ -298,6 +296,20 @@ def entrypoint():
 
     args = parser.parse_args()
 
+    try:
+        changed_version = tag_to_semver(args.changed_tag)
+    except ValueError:
+        logging.log(
+            NOTICE,
+            "Tag `%s` is not a semantic version - not updating any aliases",
+            args.changed_tag
+        )
+        sys.exit(0)
+
+    if changed_version.major < 1:
+        logging.log(NOTICE, "This workflow only updates `v1` and above")
+        sys.exit(0)
+
     aliaser = ReleaseAliaser(args.repo_dir)
-    alias, tag = aliaser.compute_alias_action(args.changed_tag)
+    alias, tag = aliaser.compute_alias_action(changed_version.major)
     # aliaser.update_alias(alias, tag)
