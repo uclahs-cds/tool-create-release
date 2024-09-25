@@ -62,6 +62,8 @@ class ReleaseAliaser(LoggingMixin):
     def __init__(self, repo_dir: Path):
         super().__init__()
 
+        self.logger.debug("Creating ReleaseAliaser")
+
         self.repo_dir = repo_dir
 
         # Map between existing tags and commit hashes, with annotated tags
@@ -298,7 +300,7 @@ def entrypoint():
     args = parser.parse_args()
 
     if not (tag_re := re.match(r"^refs/tags/([^/]+)$", args.changed_ref)):
-        logging.log(
+        logging.getLogger(__name__).log(
             NOTICE,
             "Ref `%s` is not a tag - this workflow should not have been called",
             args.changed_ref
@@ -308,7 +310,7 @@ def entrypoint():
     try:
         changed_version = tag_to_semver(tag_re.group(1))
     except ValueError:
-        logging.log(
+        logging.getLogger(__name__).log(
             NOTICE,
             "Tag `%s` is not a semantic version - not updating any aliases",
             args.changed_tag
@@ -316,7 +318,7 @@ def entrypoint():
         sys.exit(0)
 
     if changed_version.major < 1:
-        logging.log(NOTICE, "This workflow only updates `v1` and above")
+        logging.getLogger(__name__).log(NOTICE, "This workflow only updates `v1` and above")
         sys.exit(0)
 
     aliaser = ReleaseAliaser(args.repo_dir)

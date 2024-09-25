@@ -51,12 +51,8 @@ class LoggingMixin:
     @property
     def logger(self) -> logging.Logger:
         """Create and return a logger for instance or class."""
-        if isinstance(self, type):  # Check if it's accessed as a class
-            if not hasattr(self, "_class_logger"):
-                self._class_logger = logging.getLogger(self.__name__)
-            return self._class_logger
-
-        # Accessed by an instance
         if not hasattr(self, "_logger") or not self._logger:
-            self._logger = logging.getLogger(self.__class__.__name__)
+            self._logger = logging.getLogger(
+                f"{self.__class__.__module__}.{self.__class__.__name__}"
+            )
         return self._logger
