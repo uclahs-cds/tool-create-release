@@ -136,6 +136,7 @@ class ReleaseAliaser(LoggingMixin):
         dereferenced_tags: dict[str, str] = {}
 
         for match in pattern.finditer(show_ref_output):
+            self.logger.debug(match.groups())
             operator.setitem(
                 dereferenced_tags if match["annotated"] else tag_to_commit_map,
                 match["tag"],
@@ -147,8 +148,11 @@ class ReleaseAliaser(LoggingMixin):
         for tag, commit in tag_to_commit_map.items():
             self._add_git_tag(tag, commit)
 
+        self.logger.debug("Done discovering git tags")
+
     def _add_git_tag(self, tag: str, commit: str):
         """Shim method to make it easier to test."""
+        self.logger.debug("Registering git tag `%s` at commit `%s`", tag, commit)
         self.tag_to_commit_map[tag] = commit
 
         try:
