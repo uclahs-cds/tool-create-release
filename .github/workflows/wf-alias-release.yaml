@@ -29,8 +29,6 @@ jobs:
           ref: ${{ steps.workflow-parsing.outputs.SHA }}
           token: ${{ secrets.UCLAHS_CDS_REPO_READ_TOKEN }}
 
-      # This is necessary so that the `gh` cli application will work
-      # (actions/checkout caches the git credentials)
       - name: Checkout calling repository
         uses: actions/checkout@v4
         with:
