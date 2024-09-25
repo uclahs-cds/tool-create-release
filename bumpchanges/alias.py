@@ -292,12 +292,20 @@ def entrypoint():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("repo_dir", type=Path)
-    parser.add_argument("changed_tag", type=str)
+    parser.add_argument("changed_ref", type=str)
 
     args = parser.parse_args()
 
+    if not (tag_re := re.match(r"^refs/tags/([^/]+)$", args.changed_ref)):
+        logging.log(
+            NOTICE,
+            "Ref `%s` is not a tag - this workflow should not have been called",
+            args.changed_ref
+        )
+        sys.exit(1)
+
     try:
-        changed_version = tag_to_semver(args.changed_tag)
+        changed_version = tag_to_semver(tag_re.group(1))
     except ValueError:
         logging.log(
             NOTICE,
@@ -312,4 +320,4 @@ def entrypoint():
 
     aliaser = ReleaseAliaser(args.repo_dir)
     alias, tag = aliaser.compute_alias_action(changed_version.major)
-    # aliaser.update_alias(alias, tag)
+    aliaser.update_alias(alias, tag)
