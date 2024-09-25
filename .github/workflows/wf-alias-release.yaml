@@ -46,7 +46,10 @@ jobs:
 
       # Update the alias if necessary
       - id: alias-release
-        run: alias-release "$REPO_DIR" "$GITHUB_REF"
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          alias-release "$REPO_DIR" "$GITHUB_REF"
         env:
           REPO_DIR: caller
           GH_TOKEN: ${{ github.token }}
