@@ -128,7 +128,7 @@ class ReleaseAliaser(LoggingMixin):
         self.logger.debug(show_ref_output)
 
         pattern = re.compile(
-            r"^(?:<commit>\w+) refs/tags/(?:<tag>.*?)(?:<annotated>\^\{\})?$",
+            r"^(?P<commit>\w+)\s+refs/tags/(?P<tag>.*?)(?P<annotated>\^\{\})?$",
             flags=re.MULTILINE,
         )
 
