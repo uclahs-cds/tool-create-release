@@ -49,3 +49,4 @@ jobs:
         run: alias-release "$REPO_DIR" "$GITHUB_REF"
         env:
           REPO_DIR: caller
+          GH_TOKEN: ${{ github.token }}
