@@ -123,6 +123,7 @@ class ReleaseAliaser(LoggingMixin):
             .decode("utf-8")
             .strip()
         )
+        self.logger.debug(show_ref_output)
 
         pattern = re.compile(
             r"^(?:<commit>\w+) refs/tags/(?:<tag>.*?)(?:<annotated>\^\{\})?$",
