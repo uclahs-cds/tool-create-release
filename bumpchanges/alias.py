@@ -317,7 +317,7 @@ def entrypoint():
         logging.getLogger(__name__).log(
             NOTICE,
             "Tag `%s` is not a semantic version - not updating any aliases",
-            args.changed_tag
+            tag_re.group(1)
         )
         sys.exit(0)
 
