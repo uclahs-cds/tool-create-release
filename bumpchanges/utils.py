@@ -91,23 +91,26 @@ def dereference_tags(repo_dir: Path) -> dict[str, str]:
 
 def get_github_releases(repo_dir: Path) -> list[Release]:
     """Get all release data from GitHub."""
-    return json.loads(
-        subprocess.check_output(
-            [
-                "gh",
-                "release",
-                "list",
-                "--json",
-                ",".join((
-                    "name",
-                    "tagName",
-                    "isDraft",
-                    "isPrerelease",
-                )),
-            ],
-            cwd=repo_dir,
+    return [
+        Release(**item)
+        for item in json.loads(
+            subprocess.check_output(
+                [
+                    "gh",
+                    "release",
+                    "list",
+                    "--json",
+                    ",".join((
+                        "name",
+                        "tagName",
+                        "isDraft",
+                        "isPrerelease",
+                    )),
+                ],
+                cwd=repo_dir,
+            )
         )
-    )
+    ]
 
 
 def get_closest_semver_ancestor(
