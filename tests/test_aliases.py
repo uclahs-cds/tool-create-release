@@ -34,16 +34,10 @@ def mock_aliaser_internals(tmp_path):
         Release("", "v2.1.0", False, False),
     ]
 
-    with patch.multiple(
-        ReleaseAliaser, _dereference_git_tags=Mock(), _get_github_release_tags=Mock()
-    ):
+    with patch("bumpchanges.alias.dereference_tags", return_value=tag_to_commit_map), \
+            patch("bumpchanges.alias.get_github_releases", return_value=releases):
+
         aliaser = ReleaseAliaser(tmp_path)
-        for tag, commit in tag_to_commit_map.items():
-            aliaser._add_git_tag(tag, commit)
-
-        for release in releases:
-            aliaser._add_github_release(release)
-
         yield aliaser
 
 

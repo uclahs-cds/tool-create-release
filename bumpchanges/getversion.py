@@ -35,7 +35,7 @@ def get_next_version(repo_dir: Path, bump_type: str, exact_version: str) -> str:
         # Get the most recent ancestor tag that matches r"v\d.*"
         try:
             last_tag = subprocess.check_output(
-                ["git", "describe", "--tags", "--abbrev=0", "--match", "v[0-9]*"],
+                ["git", "describe", "--tags", "--abbrev=0", "--match", "v[0-9]+.*"],
                 cwd=repo_dir,
             ).decode("utf-8")
         except subprocess.CalledProcessError:

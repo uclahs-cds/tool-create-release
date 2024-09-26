@@ -1,32 +1,17 @@
 """Create a major version alias for a semantic version release."""
 
 import argparse
-import json
 import logging
-import operator
 import re
 import subprocess
 import sys
 
-from dataclasses import dataclass
 from pathlib import Path
 
 import semver
 
 from .logging import setup_logging, NOTICE, LoggingMixin
-
-
-@dataclass
-class Release:
-    """A representation of a GitHub release."""
-
-    # These names match the attributes returned by the GitHub API
-    # pylint: disable=invalid-name
-    name: str
-    tagName: str
-
-    isDraft: bool
-    isPrerelease: bool
+from .utils import dereference_tags, tag_to_semver, get_github_releases, Release
 
 
 class IneligibleAlias(Exception):
@@ -43,18 +28,6 @@ class AliasError(Exception):
 
     These are never expected.
     """
-
-
-def tag_to_semver(tag: str) -> semver.version.Version:
-    """
-    Return the Version associated with this git tag.
-
-    Raises ValueError for invalid tags.
-    """
-    if not tag.startswith("v"):
-        raise ValueError(f"Tag `{tag}` doesn't start with a `v`")
-
-    return semver.Version.parse(tag[1:])
 
 
 class ReleaseAliaser(LoggingMixin):
@@ -78,8 +51,11 @@ class ReleaseAliaser(LoggingMixin):
         self.tag_to_version_map: dict[str, semver.version.Version] = {}
 
         # Fill in all data
-        self._dereference_git_tags()
-        self._get_github_release_tags()
+        for tag, commit in dereference_tags(self.repo_dir).items():
+            self._add_git_tag(tag, commit)
+
+        for release in get_github_releases(self.repo_dir):
+            self._add_github_release(release)
 
     def assert_invariants(self):
         """Confirm that the collected data is in a reasonable state."""
@@ -121,44 +97,6 @@ class ReleaseAliaser(LoggingMixin):
                 tag,
             )
 
-    def _dereference_git_tags(self):
-        """
-        Map all git tags to commit hashes.
-
-        Annotated tags are dereferenced to point to the raw commit.
-        """
-        show_ref_output = (
-            subprocess.check_output(
-                ["git", "show-ref", "--dereference"], cwd=self.repo_dir
-            )
-            .decode("utf-8")
-            .strip()
-        )
-        self.logger.debug(show_ref_output)
-
-        pattern = re.compile(
-            r"^(?P<commit>\w+)\s+refs/tags/(?P<tag>.*?)(?P<annotated>\^\{\})?$",
-            flags=re.MULTILINE,
-        )
-
-        tag_to_commit_map: dict[str, str] = {}
-        dereferenced_tags: dict[str, str] = {}
-
-        for match in pattern.finditer(show_ref_output):
-            self.logger.debug(match.groups())
-            operator.setitem(
-                dereferenced_tags if match["annotated"] else tag_to_commit_map,
-                match["tag"],
-                match["commit"],
-            )
-
-        # Update all of the annotated tags with the dereferenced commits
-        tag_to_commit_map.update(dereferenced_tags)
-        for tag, commit in tag_to_commit_map.items():
-            self._add_git_tag(tag, commit)
-
-        self.logger.debug("Done discovering git tags")
-
     def _add_git_tag(self, tag: str, commit: str):
         """Shim method to make it easier to test."""
         self.logger.debug("Registering git tag `%s` at commit `%s`", tag, commit)
@@ -168,27 +106,6 @@ class ReleaseAliaser(LoggingMixin):
             self.tag_to_version_map[tag] = tag_to_semver(tag)
         except ValueError as err:
             self.logger.info(err)
-
-    def _get_github_release_tags(self):
-        """Get all release tags and release data from GitHub."""
-        for release_dict in json.loads(
-            subprocess.check_output(
-                [
-                    "gh",
-                    "release",
-                    "list",
-                    "--json",
-                    ",".join((
-                        "name",
-                        "tagName",
-                        "isDraft",
-                        "isPrerelease",
-                    )),
-                ],
-                cwd=self.repo_dir,
-            )
-        ):
-            self._add_github_release(Release(**release_dict))
 
     def _add_github_release(self, release: Release):
         """Shim method to make it easier to test."""
