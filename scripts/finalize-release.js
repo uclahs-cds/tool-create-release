@@ -24,7 +24,7 @@ module.exports = async ({ github, context, core }) => {
   }
 
   const newVersion = parsedVersion[1]
-  const isPrerelease = newVersion.match(/-rc\.\d+$/i)
+  const isPrerelease = /-rc\.\d+$/.test(newVersion)
 
   const isDraft = core.getBooleanInput('draft', { required: false })
 
