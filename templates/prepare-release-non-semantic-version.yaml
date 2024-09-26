@@ -1,0 +1,26 @@
+---
+name: Prepare new release
+
+run-name: Open PR for new release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        type: string
+        description: Version number to assign to next release. Must begin with a digit.
+        required: true
+
+permissions:
+  actions: read
+  contents: write
+  pull-requests: write
+
+jobs:
+  prepare-release:
+    uses: uclahs-cds/tool-create-release/.github/workflows/wf-prepare-release.yaml@v0.0.2
+    with:
+      bump_type: "exact"
+      exact_version: ${{ inputs.version }}
+    # Secrets are only required until tool-create-release is made public
+    secrets: inherit
