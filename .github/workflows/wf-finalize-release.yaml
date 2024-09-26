@@ -38,6 +38,8 @@ jobs:
         env:
           INPUT_DRAFT: ${{ inputs.draft }}
         with:
+          # Use the separate token so that `published` events will be fired
+          github-token: ${{ secrets.UCLAHS_CDS_REPO_READ_TOKEN }}
           script: |
             const script = require('./scripts/finalize-release.js')
             await script({github, context, core})
