@@ -198,7 +198,7 @@ class ReleaseAliaser(LoggingMixin):
                 "--force",
                 "--annotate",
                 "--message",
-                "Update major tag",
+                f"Update major tag {target_alias} to point to {target_tag}",
                 target_alias,
                 target_tag,
             ],
