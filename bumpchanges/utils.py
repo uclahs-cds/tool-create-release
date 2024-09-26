@@ -110,8 +110,12 @@ def get_github_releases(repo_dir: Path) -> list[Release]:
     )
 
 
-def get_closest_semver_ancestor(repo_dir: Path) -> semver.version.Version:
-    """Returns the most recent semantic version ancestor of HEAD."""
+def get_closest_semver_ancestor(repo_dir: Path, allow_prerelease: bool = False) -> semver.version.Version:
+    """
+    Returns the most recent semantic version ancestor of HEAD.
+
+    If `prerelease` is False, ignore prereleases.
+    """
     # Previously this was using `git describe --tags --abbrev=0 --match
     # <glob>`, but the differences between the glob and the full regex were
     # causing issues. Do an exhaustive search instead.
@@ -139,6 +143,10 @@ def get_closest_semver_ancestor(repo_dir: Path) -> semver.version.Version:
             continue
         except ValueError as err:
             logging.getLogger(__name__).debug(err)
+            continue
+
+        if version.prerelease and not allow_prerelease:
+            logging.getLogger(__name__).debug("Tag `%s` is a prerelease", tag)
             continue
 
         # Compute the commit distance between the tag and HEAD
