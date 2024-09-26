@@ -1,6 +1,6 @@
 # Automations for GitHub Releases
 
-This pair of reusable workflows manage the complexity of creating and tagging new software releases on GitHub.
+This set of reusable workflows manage the complexity of creating and tagging new software releases on GitHub.
 
 ## Versioning Standards
 
@@ -15,13 +15,26 @@ These workflows make the following assumptions:
 
 ## Usage
 
-Usage of this tool requires adding two workflows to each calling repository. Complete versions of these workflows can be copied from the [templates/](templates/) directory.
+Usage of this tool requires adding three workflows to each calling repository (non-semantic repositories only need two). Complete versions of these workflows can be copied from the [templates/](templates/) directory.
 
 `wf-prepare-release.yaml` is triggered manually (via a `workflow_dispatch`) and takes the following actions:
 
-1. Compute the target version number based on existing tags and user input for `major`/`minor`/`patch`/`prerelease`.
+1. Compute the target version number.
+  * Semantic repositories compute the version based on existing tags and user input for the bump type (`major`/`minor`/`patch`) and the prerelease flag.
+  * Non-semantic repositories accept the next version as an input.
 1. Re-write the `CHANGELOG.md` file to move unreleased changes into a new dated release section.
 1. Open a PR listing the target version number and release tag.
+
+```mermaid
+    gitGraph
+        commit id: " "  tag: "v1" tag: "v1.0.0"
+        commit id: "  "
+        commit id: "   "
+
+        checkout main
+        branch prepare_patch
+        commit id: "target: v1.0.1"
+```
 
 `wf-finalize-release.yaml`, triggered when a release PR is merged, takes the following actions:
 
@@ -29,13 +42,47 @@ Usage of this tool requires adding two workflows to each calling repository. Com
   * By default the new release is a draft, so no public release or tag are created without user intervention.
 1. Comment on the release PR with a link to the new release.
 
+```mermaid
+    gitGraph
+        commit id: " "  tag: "v1" tag: "v1.0.0"
+        commit id: "  "
+        commit id: "   "
+
+        checkout main
+        branch prepare_patch
+        commit id: "target: v1.0.1"
+
+        checkout main
+        merge prepare_patch tag: "v1.0.1"
+```
+
+> [!NOTE]
+> `wf-alias-release.yaml` is only applicable for repositories using semantic versioning.
+
+`wf-alias-release.yaml`, triggered when a release is published or deleted, synchronizes the corresponding [major tag alias](https://docs.github.com/en/actions/sharing-automations/creating-actions/about-custom-actions#using-tags-for-release-management) to the highest non-prerelease release tag:
+
+```mermaid
+    gitGraph
+        commit id: " " tag: "v1.0.0"
+        commit id: "  "
+        commit id: "   "
+
+        checkout main
+        branch prepare_patch
+        commit id: "target: v1.0.1"
+
+        checkout main
+        merge prepare_patch tag: "v1" tag: "v1.0.1"
+```
+
 ## Parameters
 
 Parameters can be specified using the [`with`](https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions#runsstepswith) option.
 
 | Workflow | Parameter | Type | Required | Description |
 | ---- | ---- | ---- | ---- | ---- |
-| `wf-prepare-release.yaml` | `bump_type` | string | yes | Kind of semantic release version to target. Must be one of `major`, `minor`, `patch`, `prerelease`, or `exact`. Using `exact` requires `exact_version`. |
+| `wf-prepare-release.yaml` | `bump_type` | string | yes | Kind of semantic release version to target. Must be one of `major`, `minor`, `patch`, or `exact`. Using `exact` requires `exact_version`. |
+| `wf-prepare-release.yaml` | `prerelease` | boolean | no | If true, mark the bumped semantic release as a prerelease (only used if `bump_type` is not `exact`). |
 | `wf-prepare-release.yaml` | `exact_version` | string | no | The exact version to assign to the next release (only used if `bump_type` is `exact`). Must not include a leading `v` - use `1XXXX`, not `v1XXXX`. |
 | `wf-prepare-release.yaml` | `changelog` | string | no | Relative path to the CHANGELOG file. Defaults to `./CHANGELOG.md`. |
 | `wf-prepare-release.yaml` | `timezone` | string | no | IANA timezone to use when calculating the current date for the CHANGELOG. Defaults to `America/Los_Angeles`. |
