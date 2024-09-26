@@ -110,7 +110,9 @@ def get_github_releases(repo_dir: Path) -> list[Release]:
     )
 
 
-def get_closest_semver_ancestor(repo_dir: Path, allow_prerelease: bool = False) -> semver.version.Version:
+def get_closest_semver_ancestor(
+    repo_dir: Path, allow_prerelease: bool = False
+) -> semver.version.Version:
     """
     Returns the most recent semantic version ancestor of HEAD.
 

@@ -70,10 +70,16 @@ def test_fail_on_existing_tags(last, bad_type, existing_tags):
                 with contexts[bump_type]:
                     get_next_semver(Path(), bump_type, False)
 
+
 @pytest.mark.parametrize(
     "last,bump_type,existing_tags,expected",
     [
-        (Version(23, 85, 43), "patch", ["v23.85.44-rc.1", "v23.85.44-rc.2"], "23.85.44-rc.3"),
+        (
+            Version(23, 85, 43),
+            "patch",
+            ["v23.85.44-rc.1", "v23.85.44-rc.2"],
+            "23.85.44-rc.3",
+        ),
         (Version(1, 2, 3), "minor", ["v1.3.0-rc.1"], "1.3.0-rc.2"),
         (Version(1, 2, 3), "major", ["v2.0.0-rc.1"], "2.0.0-rc.2"),
         (Version(1, 2, 3), "major", ["v2.0.0-rc.2"], "2.0.0-rc.1"),
@@ -84,6 +90,7 @@ def test_bumping_prerelease(last, bump_type, existing_tags, expected):
     with patch("bumpchanges.getversion.get_closest_semver_ancestor", return_value=last):
         with mock_tag_exists(existing_tags):
             assert get_next_semver(Path(), bump_type, True) == expected
+
 
 @pytest.mark.parametrize(
     "exact_version_str,expectation",
@@ -96,7 +103,6 @@ def test_bumping_prerelease(last, bump_type, existing_tags, expected):
         ("two", pytest.raises(RuntimeError)),
     ],
 )
-
 def test_get_exact(exact_version_str, expectation):
     """Test protections when giving an exact version string."""
     with mock_tag_exists([]):
@@ -113,7 +119,6 @@ def test_get_exact(exact_version_str, expectation):
         ("233.33153", "v233.33153"),
     ],
 )
-
 def test_exact_tag_protection(exact_version_str, tag):
     """Test that get_exact_version will fail if the version tag already exists."""
     other_tags = ["v1.0.0", "1.0.0", "random"]

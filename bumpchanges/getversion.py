@@ -40,16 +40,16 @@ def get_exact_version(repo_dir: Path, exact_version) -> str:
         raise RuntimeError()
 
     if not re.match(r"^\d", exact_version):
-        logger.error(
-            "Input version `{exact_version}` does not start with a digit"
-        )
+        logger.error("Input version `{exact_version}` does not start with a digit")
         raise RuntimeError()
 
     validate_version_bump(repo_dir, "<ignored>", exact_version)
     return exact_version
 
 
-def validate_version_bump(repo_dir: Path, prior_version_str: str, next_version_str: str):
+def validate_version_bump(
+    repo_dir: Path, prior_version_str: str, next_version_str: str
+):
     """Validate that the proposed version is acceptable."""
     logger = getLogger(__name__)
 
@@ -87,7 +87,9 @@ def entrypoint():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("repo_dir", type=Path)
-    parser.add_argument("bump_type", type=str, choices=("major", "minor", "patch", "exact"))
+    parser.add_argument(
+        "bump_type", type=str, choices=("major", "minor", "patch", "exact")
+    )
     parser.add_argument("prerelease", type=str_to_bool)
     parser.add_argument("exact_version", type=str)
 
