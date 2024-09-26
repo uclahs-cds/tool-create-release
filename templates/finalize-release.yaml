@@ -1,5 +1,7 @@
 ---
-name: Finalize release
+name: 🛠️ Finalize release
+
+run-name: Finalize release from branch `${{ github.event.pull_request.head.ref }}`
 
 on:
   pull_request:

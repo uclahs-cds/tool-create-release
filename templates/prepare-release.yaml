@@ -1,5 +1,5 @@
 ---
-name: Prepare new release
+name: 📦 Prepare new release
 
 run-name: Open PR for new ${{ inputs.bump_type }} release
 
@@ -16,7 +16,7 @@ on:
           - patch
       prerelease:
         type: boolean
-        description: Create a prerelease for the target version
+        description: Create a prerelease
 
 permissions:
   actions: read

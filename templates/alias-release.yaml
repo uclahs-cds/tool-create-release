@@ -1,5 +1,7 @@
 ---
-name: Update release alias tags
+name: 🛠️ Update release alias tags
+
+run-name: Update alias for ${{ github.event.action }} ${{ github.event.release.name }}
 
 on:
   release:
