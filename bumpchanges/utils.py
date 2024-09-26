@@ -26,6 +26,7 @@ class Release:
     isDraft: bool
     isPrerelease: bool
 
+
 def tag_to_semver(tag: str) -> semver.version.Version:
     """
     Return the Version associated with this git tag.
@@ -54,16 +55,14 @@ def tag_exists(repo_dir: Path, tag: str) -> bool:
         capture_output=True,
         check=False,
     )
-    
+
     return tag_ref_proc.returncode == 0
 
 
 def dereference_tags(repo_dir: Path) -> dict[str, str]:
     """Return a dictionary mapping all tags to commit hashes."""
     show_ref_output = (
-        subprocess.check_output(
-            ["git", "show-ref", "--dereference"], cwd=repo_dir
-        )
+        subprocess.check_output(["git", "show-ref", "--dereference"], cwd=repo_dir)
         .decode("utf-8")
         .strip()
     )
@@ -89,6 +88,7 @@ def dereference_tags(repo_dir: Path) -> dict[str, str]:
 
     return tag_to_commit_map
 
+
 def get_github_releases(repo_dir: Path) -> list[Release]:
     """Get all release data from GitHub."""
     return json.loads(
@@ -109,12 +109,18 @@ def get_github_releases(repo_dir: Path) -> list[Release]:
         )
     )
 
+
 def get_closest_semver_ancestor(repo_dir: Path) -> semver.version.Version:
     """Returns the most recent semantic version ancestor of HEAD."""
     # Previously this was using `git describe --tags --abbrev=0 --match
     # <glob>`, but the differences between the glob and the full regex were
     # causing issues. Do an exhaustive search instead.
-    all_tags = subprocess.check_output(["git", "tag"], cwd=repo_dir).decode("utf-8").strip().splitlines()
+    all_tags = (
+        subprocess.check_output(["git", "tag"], cwd=repo_dir)
+        .decode("utf-8")
+        .strip()
+        .splitlines()
+    )
 
     version_distances = defaultdict(list)
 
@@ -122,8 +128,7 @@ def get_closest_semver_ancestor(repo_dir: Path) -> semver.version.Version:
         # Ignore the tag if it's not an ancestor of HEAD or a semantic version
         try:
             subprocess.check_call(
-                ["git", "merge-base", "--is-ancestor", tag, "HEAD"],
-                cwd=repo_dir
+                ["git", "merge-base", "--is-ancestor", tag, "HEAD"], cwd=repo_dir
             )
             version = tag_to_semver(tag)
 
@@ -137,22 +142,20 @@ def get_closest_semver_ancestor(repo_dir: Path) -> semver.version.Version:
             continue
 
         # Compute the commit distance between the tag and HEAD
-        distance = int(subprocess.check_output(
-            ["git", "rev-list", "--count", f"{tag}..HEAD"]
-        ))
+        distance = int(
+            subprocess.check_output(["git", "rev-list", "--count", f"{tag}..HEAD"])
+        )
         version_distances[distance].append(version)
         logging.getLogger(__name__).debug(
-            "Tag `%s` (version %s) is %d commits away from HEAD",
-            tag, version, distance
+            "Tag `%s` (version %s) is %d commits away from HEAD", tag, version, distance
         )
-
 
     if not version_distances:
         fallback = semver.Version(0, 0, 0)
         logging.getLogger(__name__).log(
             NOTICE,
             "No direct ancestors of HEAD are semantic versions - defaulting to %s",
-            fallback
+            fallback,
         )
         return fallback
 
@@ -161,14 +164,11 @@ def get_closest_semver_ancestor(repo_dir: Path) -> semver.version.Version:
 
     if len(closest_versions) > 1:
         logging.getLogger(__name__).warning(
-            "Multiple tags are equidistant from HEAD: %s",
-            closest_versions
+            "Multiple tags are equidistant from HEAD: %s", closest_versions
         )
 
     logging.getLogger(__name__).info(
-        "Closest ancestor %s is %d commits back",
-        closest_versions[-1],
-        min_distance
+        "Closest ancestor %s is %d commits back", closest_versions[-1], min_distance
     )
 
     return closest_versions[-1]

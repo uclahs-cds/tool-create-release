@@ -176,13 +176,16 @@ class ChangelogVersion:
         else:
             raise ChangelogError(f"Invalid section heading: {tokens[1].content}")
 
-        logging.getLogger(__name__).info("Parsed version: %s", kwargs.get("version_str"))
+        logging.getLogger(__name__).info(
+            "Parsed version: %s", kwargs.get("version_str")
+        )
 
         # Strip any leading `v`s from versions, as long as they are followed by
         # a digit
         if cls.leading_v_re.match(kwargs["version_str"]):
             logging.getLogger(__name__).warning(
-                "Stripping leading `v` from Changelog version `%s`", kwargs["version_str"]
+                "Stripping leading `v` from Changelog version `%s`",
+                kwargs["version_str"],
             )
             kwargs["version_str"] = kwargs["version_str"][1:]
 
@@ -366,9 +369,13 @@ class Changelog:
 
     def update_version(self, next_version: str, date: datetime.date):
         """Move all unreleased changes under the new version."""
-        if not self.versions or self.versions[0].version_str != ChangelogVersion.UNRELEASED_VERSION:
+        if (
+            not self.versions
+            or self.versions[0].version_str != ChangelogVersion.UNRELEASED_VERSION
+        ):
             logging.getLogger(__name__).warning(
-                "No %s section - adding a new empty section", ChangelogVersion.UNRELEASED_VERSION
+                "No %s section - adding a new empty section",
+                ChangelogVersion.UNRELEASED_VERSION,
             )
             self.versions.insert(0, ChangelogVersion.blank_unreleased())
 

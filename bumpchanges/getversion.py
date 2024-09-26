@@ -3,12 +3,10 @@
 import argparse
 import re
 import os
-import subprocess
 
 from logging import getLogger
 from pathlib import Path
 
-import semver
 
 from .logging import setup_logging, NOTICE
 from .utils import get_closest_semver_ancestor, version_to_tag_str, tag_exists
