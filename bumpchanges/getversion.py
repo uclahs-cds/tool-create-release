@@ -11,6 +11,7 @@ from pathlib import Path
 import semver
 
 from .logging import setup_logging, NOTICE
+from .utils import get_closest_semver_ancestor, version_to_tag_str, tag_exists
 
 
 def get_next_version(repo_dir: Path, bump_type: str, exact_version: str) -> str:
@@ -29,43 +30,23 @@ def get_next_version(repo_dir: Path, bump_type: str, exact_version: str) -> str:
             )
             raise RuntimeError()
 
-        next_version = exact_version
+        next_version_str = exact_version
 
     else:
-        # Get the most recent ancestor tag that matches r"v\d.*"
-        try:
-            last_tag = subprocess.check_output(
-                ["git", "describe", "--tags", "--abbrev=0", "--match", "v[0-9]+.*"],
-                cwd=repo_dir,
-            ).decode("utf-8")
-        except subprocess.CalledProcessError:
-            # It seems that this is the first release
-            last_tag = "v0.0.0"
-            logger.warning("No prior tag found! Defaulting to %s", last_tag)
+        last_version = get_closest_semver_ancestor(repo_dir)
+        next_version_str = str(last_version.next_version(part=bump_type))
 
-        # Strip off the leading v when parsing the version
-        last_version = semver.Version.parse(last_tag[1:])
-        next_version = str(last_version.next_version(part=bump_type))
-
-    logger.info("%s -> %s -> %s", last_version, bump_type, next_version)
-    next_tag = f"v{next_version}"
-    logger.log(NOTICE, "New version (tag): %s (%s)", next_version, next_tag)
+    logger.info("%s -> %s -> %s", last_version, bump_type, next_version_str)
+    next_tag = version_to_tag_str(next_version_str)
+    logger.log(NOTICE, "New version (tag): %s (%s)", next_version_str, next_tag)
 
     # Confirm that the corresponding git tag does not exist
-    tag_ref_proc = subprocess.run(
-        ["git", "rev-parse", "--verify", f"refs/tags/{next_tag}"],
-        cwd=repo_dir,
-        capture_output=True,
-        check=False,
-    )
-    if tag_ref_proc.returncode == 0:
+    if tag_exists(repo_dir, next_tag):
         # Oops, that tag does exist
-        logger.error(
-            "Tag %s already exists! %s", next_tag, tag_ref_proc.stdout.decode("utf-8")
-        )
+        logger.error("Tag %s already exists!", next_tag)
         raise RuntimeError()
 
-    return next_version
+    return next_version_str
 
 
 def entrypoint():

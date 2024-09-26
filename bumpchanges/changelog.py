@@ -14,6 +14,7 @@ from markdown_it import MarkdownIt
 from markdown_it.token import Token
 
 from .logging import NOTICE
+from .utils import version_to_tag_str
 
 
 class ChangelogError(Exception):
@@ -400,7 +401,7 @@ class Changelog:
             if version.version_str == ChangelogVersion.UNRELEASED_VERSION:
                 this_tag = None
             else:
-                this_tag = f"v{version.version_str.lstrip('v')}"
+                this_tag = version_to_tag_str(version.version_str)
 
             if prior_tag:
                 href = f"{self.repo_url}/compare/{prior_tag}...{this_tag if this_tag else 'HEAD'}"

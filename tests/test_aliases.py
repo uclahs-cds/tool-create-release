@@ -1,7 +1,7 @@
 """Tests for CHANGELOG parsing and reformatting."""
 
 import contextlib
-from unittest.mock import patch, Mock
+from unittest.mock import patch
 
 import pytest
 import semver
