@@ -151,7 +151,10 @@ def get_closest_semver_ancestor(repo_dir: Path, allow_prerelease: bool = False) 
 
         # Compute the commit distance between the tag and HEAD
         distance = int(
-            subprocess.check_output(["git", "rev-list", "--count", f"{tag}..HEAD"])
+            subprocess.check_output(
+                ["git", "rev-list", "--count", f"{tag}..HEAD"],
+                cwd=repo_dir,
+            )
         )
         version_distances[distance].append(version)
         logging.getLogger(__name__).debug(
