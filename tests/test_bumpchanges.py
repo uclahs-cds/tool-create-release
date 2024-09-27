@@ -28,7 +28,9 @@ def mock_tag_exists(tags):
     [
         (Version(1, 1, 1), "patch", True, "1.1.2-rc.1"),
         (Version(1, 1, 1), "patch", False, "1.1.2"),
+        (Version(1, 1, 1), "minor", True, "1.2.0-rc.1"),
         (Version(1, 1, 1), "minor", False, "1.2.0"),
+        (Version(1, 1, 1), "major", True, "2.0.0-rc.1"),
         (Version(1, 1, 1), "major", False, "2.0.0"),
     ],
 )
