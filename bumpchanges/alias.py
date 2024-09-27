@@ -59,34 +59,30 @@ class ReleaseAliaser(LoggingMixin):
 
     def assert_invariants(self):
         """Confirm that the collected data is in a reasonable state."""
+        release_keys = self.tag_to_release_map.keys()
+        commit_keys = self.tag_to_commit_map.keys()
+        version_keys = self.tag_to_version_map.keys()
+
         # All releases must have corresponding git tags
-        if unknown_tags := (
-            self.tag_to_release_map.keys() - self.tag_to_commit_map.keys()
-        ):
+        if unknown_tags := (release_keys - commit_keys):
             raise AliasError(
                 f"GitHub reports tags that are not visible locally: {unknown_tags}"
             )
 
         # All semantic version tags must also be git tags
-        if unknown_tags := (
-            self.tag_to_version_map.keys() - self.tag_to_commit_map.keys()
-        ):
+        if unknown_tags := (version_keys - commit_keys):
             raise AliasError(
                 f"Invalid data state - non-git version tags exist: {unknown_tags}"
             )
 
         # Issue warnings about SemVer tags not associated with a release
-        for tag in sorted(
-            self.tag_to_version_map.keys() - self.tag_to_release_map.keys()
-        ):
+        for tag in sorted(version_keys - release_keys):
             self.logger.warning(
                 "SemVer tag `%s` does not have a matching GitHub Release.", tag
             )
 
         # Issue warnings about releases not associated with SemVer tags
-        for tag in sorted(
-            self.tag_to_release_map.keys() - self.tag_to_version_map.keys()
-        ):
+        for tag in sorted(release_keys - version_keys):
             release = self.tag_to_release_map[tag]
             self.logger.warning(
                 "Github Release `%s` uses the non-SemVer tag `%s`. "
