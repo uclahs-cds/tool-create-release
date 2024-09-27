@@ -8,6 +8,7 @@ import subprocess
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Union
 
 import semver
 
@@ -39,7 +40,7 @@ def tag_to_semver(tag: str) -> semver.version.Version:
     return semver.Version.parse(tag[1:])
 
 
-def version_to_tag_str(version: str | semver.version.Version) -> str:
+def version_to_tag_str(version: Union[str, semver.version.Version]) -> str:
     """Return the git tag associated with this version."""
     # _Do_ add leading `v`s. Versions numbers never have leading `v`s, tags
     # always have leading `v`s.

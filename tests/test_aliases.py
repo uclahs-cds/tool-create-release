@@ -52,6 +52,8 @@ def test_alias_workflow(aliaser):
 
 def test_modified_releases(aliaser):
     """Test how new releases interact with the results."""
+    # pylint: disable=protected-access
+
     assert aliaser.compute_alias_action(2) == ("v2", "v2.1.0")
 
     # Act as if this GitHub release never existed
@@ -90,6 +92,8 @@ def test_modified_releases(aliaser):
 @pytest.mark.parametrize("release_pre", [True, False])
 def test_drafts_and_prereleases(aliaser, semver_pre, release_draft, release_pre):
     """Test that only non-drafts and full releases are eligible."""
+    # pylint: disable=protected-access
+
     base_version = semver.Version(3, 0, 0)
     if semver_pre:
         base_version = base_version.bump_prerelease()
