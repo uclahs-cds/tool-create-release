@@ -14,7 +14,7 @@ from .logging import setup_logging, NOTICE, LoggingMixin
 from .utils import dereference_tags, tag_to_semver, get_github_releases, Release
 
 
-class IneligibleAlias(Exception):
+class IneligibleAliasError(Exception):
     """
     Exception to major alias shouldn't be updated.
 
@@ -149,7 +149,9 @@ class ReleaseAliaser(LoggingMixin):
         eligible_tags.sort(key=lambda x: self.tag_to_version_map[x])
 
         if not eligible_tags:
-            raise IneligibleAlias("No eligible release tags for alias `{target_alias}`")
+            raise IneligibleAliasError(
+                "No eligible release tags for alias `{target_alias}`"
+            )
 
         target_tag = eligible_tags[-1]
         self.logger.info("Alias `%s` should point to `%s`", target_alias, target_tag)

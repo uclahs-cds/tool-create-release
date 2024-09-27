@@ -6,7 +6,7 @@ from unittest.mock import patch
 import pytest
 import semver
 
-from bumpchanges.alias import ReleaseAliaser, IneligibleAlias, AliasError, Release
+from bumpchanges.alias import ReleaseAliaser, IneligibleAliasError, AliasError, Release
 
 
 # Sample test case to mock _dereference_tags
@@ -46,7 +46,7 @@ def test_alias_workflow(aliaser):
     assert aliaser.compute_alias_action(1) == ("v1", "v1.0.1")
     assert aliaser.compute_alias_action(2) == ("v2", "v2.1.0")
 
-    with pytest.raises(IneligibleAlias):
+    with pytest.raises(IneligibleAliasError):
         aliaser.compute_alias_action(3)
 
 
@@ -62,7 +62,7 @@ def test_modified_releases(aliaser):
 
     # Act as if this GitHub release never existed. There are no more valid releases.
     aliaser.tag_to_release_map.pop("v2.0.0")
-    with pytest.raises(IneligibleAlias):
+    with pytest.raises(IneligibleAliasError):
         aliaser.compute_alias_action(2)
 
     # Add in a new release
@@ -104,7 +104,7 @@ def test_drafts_and_prereleases(aliaser, semver_pre, release_draft, release_pre)
     aliaser._add_github_release(Release("", tag, release_draft, release_pre))
 
     if semver_pre or release_pre or release_draft:
-        expectation = pytest.raises(IneligibleAlias)
+        expectation = pytest.raises(IneligibleAliasError)
     else:
         expectation = contextlib.nullcontext()
 
