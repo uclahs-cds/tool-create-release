@@ -60,18 +60,16 @@ class ReleaseAliaser(LoggingMixin):
     def assert_invariants(self):
         """Confirm that the collected data is in a reasonable state."""
         # All releases must have corresponding git tags
-        if (
-            unknown_tags := self.tag_to_release_map.keys()
-            - self.tag_to_commit_map.keys()
+        if unknown_tags := (
+            self.tag_to_release_map.keys() - self.tag_to_commit_map.keys()
         ):
             raise AliasError(
                 f"GitHub reports tags that are not visible locally: {unknown_tags}"
             )
 
         # All semantic version tags must also be git tags
-        if (
-            unknown_tags := self.tag_to_version_map.keys()
-            - self.tag_to_commit_map.keys()
+        if unknown_tags := (
+            self.tag_to_version_map.keys() - self.tag_to_commit_map.keys()
         ):
             raise AliasError(
                 f"Invalid data state - non-git version tags exist: {unknown_tags}"
