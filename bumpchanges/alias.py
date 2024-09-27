@@ -64,13 +64,13 @@ class ReleaseAliaser(LoggingMixin):
         version_keys = self.tag_to_version_map.keys()
 
         # All releases must have corresponding git tags
-        if unknown_tags := (release_keys - commit_keys):
+        if unknown_tags := release_keys - commit_keys:
             raise AliasError(
                 f"GitHub reports tags that are not visible locally: {unknown_tags}"
             )
 
         # All semantic version tags must also be git tags
-        if unknown_tags := (version_keys - commit_keys):
+        if unknown_tags := version_keys - commit_keys:
             raise AliasError(
                 f"Invalid data state - non-git version tags exist: {unknown_tags}"
             )
