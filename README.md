@@ -23,6 +23,7 @@ Usage of this tool requires adding three workflows to each calling repository (n
   * Semantic repositories compute the version based on existing tags and user input for the bump type (`major`/`minor`/`patch`) and the prerelease flag.
   * Non-semantic repositories accept the next version as an input.
 1. Re-write the `CHANGELOG.md` file to move unreleased changes into a new dated release section.
+1. (Optional) Update hardcoded version strings in files passed to `version_files` input.
 1. Open a PR listing the target version number and release tag.
 
 ```mermaid
@@ -83,10 +84,19 @@ Parameters can be specified using the [`with`](https://docs.github.com/en/action
 | ---- | ---- | ---- | ---- | ---- |
 | `wf-prepare-release.yaml` | `bump_type` | string | yes | Kind of semantic release version to target. Must be one of `major`, `minor`, `patch`, or `exact`. Using `exact` requires `exact_version`. |
 | `wf-prepare-release.yaml` | `prerelease` | boolean | no | If true, mark the bumped semantic release as a prerelease (only used if `bump_type` is not `exact`). |
+| `wf-prepare-release.yaml` | `version_files` | string | no | Comma-separated relative paths to files containing hardcoded version strings (see note below). |
 | `wf-prepare-release.yaml` | `exact_version` | string | no | The exact version to assign to the next release (only used if `bump_type` is `exact`). Must not include a leading `v` - use `1XXXX`, not `v1XXXX`. |
 | `wf-prepare-release.yaml` | `changelog` | string | no | Relative path to the CHANGELOG file. Defaults to `./CHANGELOG.md`. |
 | `wf-prepare-release.yaml` | `timezone` | string | no | IANA timezone to use when calculating the current date for the CHANGELOG. Defaults to `America/Los_Angeles`. |
 | `wf-finalize-release.yaml` | `draft` | boolean | no | If true (the default), mark the new release as a draft and require manual intervention to continue. |
+
+
+### Updating hard-coded strings with `version_files`
+
+> [!TIP]
+> If possible, avoid embedding version numbers in version-controlled files. An alternative is to dynamically generate version numbers during the build or release process - [hatch-vcs](https://github.com/ofek/hatch-vcs) or [setuptools-scm](https://pypi.org/project/setuptools-scm/) can do this for python packages.
+
+Hard-coded version strings in files (e.g. in `nextflow.config` or `_version.py` files) can be updated by passing the filepath to the `version_files` input. The update behavior is simple and brittle: every input file must have exactly one line that looks like `version = '1.2.3'` (see the full regex in [`updatefiles.py`](./bumpchanges/updatefiles.py)). Multiple matches or no matches will stop the release.
 
 ## License
 
