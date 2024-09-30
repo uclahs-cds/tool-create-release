@@ -42,3 +42,18 @@ def setup_logging():
     root_logger = logging.getLogger(__name__.rpartition(".")[0])
     root_logger.addHandler(handler)
     root_logger.setLevel(logging.DEBUG)
+
+
+class LoggingMixin:
+    """A mixin class for logging."""
+
+    # pylint: disable=too-few-public-methods
+
+    @property
+    def logger(self) -> logging.Logger:
+        """Create and return a logger for instance or class."""
+        if not hasattr(self, "_logger") or not self._logger:
+            self._logger = logging.getLogger(
+                f"{self.__class__.__module__}.{self.__class__.__name__}"
+            )
+        return self._logger

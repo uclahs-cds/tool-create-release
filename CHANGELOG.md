@@ -12,6 +12,16 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 - Documentation that versions must begin with a digit
 - Documentation that git tags must begin with a `v`
+- Template workflows to copy
+- Enable Dependabot for GitHub Actions, pip, and template workflows
+- Unit tests for version updates
+- Workflow to update major tag (e.g. `v2`) when new releases are published or deleted
+- Unit tests for aliasing
+
+### Changed
+
+- Change `prerelease` from an input "bump type" to a separate boolean
+- Create "prerelease" GitHub Releases from prerelease versions
 
 ### Fixed
 

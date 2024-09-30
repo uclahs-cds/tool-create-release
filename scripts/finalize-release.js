@@ -24,6 +24,7 @@ module.exports = async ({ github, context, core }) => {
   }
 
   const newVersion = parsedVersion[1]
+  const isPrerelease = /-rc\.\d+$/.test(newVersion)
 
   const isDraft = core.getBooleanInput('draft', { required: false })
 
@@ -35,6 +36,7 @@ module.exports = async ({ github, context, core }) => {
     name: `Release ${newVersion}`,
     draft: isDraft,
     generate_release_notes: true,
+    prerelease: isPrerelease,
     body: `Automatically generated after merging #${context.payload.number}.`
   })
 

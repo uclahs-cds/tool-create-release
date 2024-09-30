@@ -1,0 +1,20 @@
+---
+version: 2
+updates:
+  # GitHub Actions in use by this repository
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  # Python packages in use by this repository
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  # The template workflows demonstrating use _of_ this repository
+  - package-ecosystem: "github-actions"
+    directory: "/templates"
+    schedule:
+      interval: "weekly"

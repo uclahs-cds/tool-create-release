@@ -14,6 +14,7 @@ from markdown_it import MarkdownIt
 from markdown_it.token import Token
 
 from .logging import NOTICE
+from .utils import version_to_tag_str
 
 
 class ChangelogError(Exception):
@@ -89,7 +90,7 @@ HEADING_REPLACEMENTS = {
 
 
 @dataclass
-class Version:
+class ChangelogVersion:
     """Class to help manage individual releases within CHANGELOG.md files."""
 
     # Regex to match versions with embedded links, with or without dates
@@ -99,7 +100,7 @@ class Version:
     #   [1.2.3](https://foo.bar)
     #   [badversion](https://foo.bar)
     link_heading_re: ClassVar = re.compile(
-        r"^\[(?P<version>.+?)\]\((?:.+?)\)(?:\s+-\s+(?P<date>.*))?$"
+        r"^\[(?P<version_str>.+?)\]\((?:.+?)\)(?:\s+-\s+(?P<date>.*))?$"
     )
 
     # Regex to match versions, with or without dates
@@ -110,7 +111,7 @@ class Version:
     #   1.2.3
     #   badversion
     heading_re: ClassVar = re.compile(
-        r"^\[?(?P<version>.+?)\]?(?:\s+-\s+(?P<date>.*))?$"
+        r"^\[?(?P<version_str>.+?)\]?(?:\s+-\s+(?P<date>.*))?$"
     )
 
     # Regex to match versions with leading `v`s (for removal)
@@ -129,7 +130,7 @@ class Version:
 
     UNRELEASED_VERSION: ClassVar = "Unreleased"
 
-    version: str
+    version_str: str
     date: Optional[str] = None
     link: Optional[str] = None
 
@@ -146,12 +147,12 @@ class Version:
     @classmethod
     def blank_unreleased(cls):
         """Create a new empty Unreleased version."""
-        return cls(version=cls.UNRELEASED_VERSION)
+        return cls(version_str=cls.UNRELEASED_VERSION)
 
     @classmethod
     def from_tokens(cls, tokens):
         """
-        Parse a Version from a token stream.
+        Parse a ChangelogVersion from a token stream.
 
         Leading `v`s will be stripped from the version name.
         """
@@ -175,15 +176,18 @@ class Version:
         else:
             raise ChangelogError(f"Invalid section heading: {tokens[1].content}")
 
-        logging.getLogger(__name__).info("Parsed version: %s", kwargs.get("version"))
+        logging.getLogger(__name__).info(
+            "Parsed version: %s", kwargs.get("version_str")
+        )
 
         # Strip any leading `v`s from versions, as long as they are followed by
         # a digit
-        if cls.leading_v_re.match(kwargs["version"]):
+        if cls.leading_v_re.match(kwargs["version_str"]):
             logging.getLogger(__name__).warning(
-                "Stripping leading `v` from Changelog version `%s`", kwargs["version"]
+                "Stripping leading `v` from Changelog version `%s`",
+                kwargs["version_str"],
             )
-            kwargs["version"] = kwargs["version"][1:]
+            kwargs["version_str"] = kwargs["version_str"][1:]
 
         # The rest of the tokens should be the lists. Strip any rulers now.
         tokens = [token for token in tokens[3:] if token.type != "hr"]
@@ -237,17 +241,17 @@ class Version:
         return cls(**kwargs)
 
     def serialize(self):
-        """Yield a stream of markdown tokens describing this Version."""
+        """Yield a stream of markdown tokens describing this ChangelogVersion."""
 
         link_kwargs = {}
         if self.link:
             link_kwargs["attrs"] = {"href": self.link}
         else:
-            link_kwargs["meta"] = {"label": self.version}
+            link_kwargs["meta"] = {"label": self.version_str}
 
         heading_children = [
             Token("link_open", tag="a", nesting=1, **link_kwargs),
-            Token("text", tag="", nesting=0, level=1, content=self.version),
+            Token("text", tag="", nesting=0, level=1, content=self.version_str),
             Token("link_close", tag="a", nesting=-1),
         ]
 
@@ -332,7 +336,7 @@ class Changelog:
                     if nexttoken is None:
                         raise ChangelogError()
 
-                    if Version.wrong_h1_re.match(nexttoken.content):
+                    if ChangelogVersion.wrong_h1_re.match(nexttoken.content):
                         token.tag = "h2"
                         logger.log(
                             NOTICE, "Changing `%s` from h1 to h2", nexttoken.content
@@ -345,35 +349,39 @@ class Changelog:
                     if nexttoken is None:
                         raise ChangelogError()
 
-                    if Version.wrong_h2_re.match(nexttoken.content):
+                    if ChangelogVersion.wrong_h2_re.match(nexttoken.content):
                         token.tag = "h3"
                         logger.log(
                             NOTICE, "Changing `%s` from h2 to h3", nexttoken.content
                         )
                     else:
-                        # Split split these tokens off into a new Version
+                        # Split split these tokens off into a new ChangelogVersion
                         groups.append([])
 
             groups[-1].append(token)
 
         self.header = [token for token in groups.pop(0) if token.tag != "hr"]
 
-        self.versions = [Version.from_tokens(group) for group in groups]
+        self.versions = [ChangelogVersion.from_tokens(group) for group in groups]
 
         if not self.versions:
             raise ChangelogError("No versions!")
 
     def update_version(self, next_version: str, date: datetime.date):
         """Move all unreleased changes under the new version."""
-        if not self.versions or self.versions[0].version != Version.UNRELEASED_VERSION:
+        if (
+            not self.versions
+            or self.versions[0].version_str != ChangelogVersion.UNRELEASED_VERSION
+        ):
             logging.getLogger(__name__).warning(
-                "No %s section - adding a new empty section", Version.UNRELEASED_VERSION
+                "No %s section - adding a new empty section",
+                ChangelogVersion.UNRELEASED_VERSION,
             )
-            self.versions.insert(0, Version.blank_unreleased())
+            self.versions.insert(0, ChangelogVersion.blank_unreleased())
 
         # Change the version and date of the unreleased section. For now
         # explicitly assume UTC, but that should probably be an input.
-        self.versions[0].version = next_version
+        self.versions[0].version_str = next_version
         self.versions[0].date = date.isoformat()
 
     def render(self) -> str:
@@ -397,12 +405,10 @@ class Changelog:
         prior_tag = None
 
         for version in reversed(self.versions):
-            if version.version == Version.UNRELEASED_VERSION:
+            if version.version_str == ChangelogVersion.UNRELEASED_VERSION:
                 this_tag = None
             else:
-                # _Do_ add leading `v`s. Versions numbers never have
-                # leading `v`s, tags always have leading `v`s.
-                this_tag = f"v{version.version.lstrip('v')}"
+                this_tag = version_to_tag_str(version.version_str)
 
             if prior_tag:
                 href = f"{self.repo_url}/compare/{prior_tag}...{this_tag if this_tag else 'HEAD'}"
@@ -411,7 +417,7 @@ class Changelog:
             else:
                 href = f"{self.repo_url}/commits/HEAD"
 
-            refs[version.version] = {"href": href, "title": ""}
+            refs[version.version_str] = {"href": href, "title": ""}
 
             prior_tag = this_tag
 

@@ -18,7 +18,8 @@ permissions:
 jobs:
   finalize-release:
     if: ${{ github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'automation-create-release') }}
-    uses: ./.github/workflows/wf-finalize-release.yaml
-    secrets: inherit
+    uses: uclahs-cds/tool-create-release/.github/workflows/wf-finalize-release.yaml@v0.0.2
     with:
       draft: true
+    # Secrets are only required until tool-create-release is made public
+    secrets: inherit

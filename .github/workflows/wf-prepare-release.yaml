@@ -9,11 +9,16 @@ on:
         default: CHANGELOG.md
       bump_type:
         type: string
-        description: Semantic version bump type. Must be one of `major`, `minor`, `patch`, `prerelease`, or `exact`. Using the first four options will compute the next appropriate semantic version tag based on the most recent tag available from the main branch. Using `exact` is required for repositories without semantic version tags and allows specifying the exact next tag to use with the `exact_version` argument.
+        description: Semantic version bump type. Must be one of `major`, `minor`, `patch`, or `exact`. Using the first three options will compute the next appropriate semantic version tag based on the most recent tag available from the main branch. Using `exact` is required for repositories without semantic version tags and allows specifying the exact next tag to use with the `exact_version` argument.
         required: true
+      prerelease:
+        type: boolean
+        description: Mark this semantic version bump as a pre-release. Only used if bump_type is not set to `exact`.
+        required: false
+        default: false
       exact_version:
         type: string
-        description: Exact version number to target. Only used if bump_type is set to `exact`.
+        description: Exact non-semantic version number to target. Only used if bump_type is set to `exact`.
         required: false
         default: ""
       timezone:
@@ -28,6 +33,7 @@ jobs:
 
     env:
       BUMP_TYPE: ${{ inputs.bump_type }}
+      PRERELEASE: ${{ inputs.prerelease }}
       EXACT_VERSION: ${{ inputs.exact_version }}
       CHANGELOG_TIMEZONE: ${{ inputs.timezone }}
 
@@ -71,7 +77,7 @@ jobs:
 
       # Get the next version using the package's script
       - id: get-next-version
-        run: get-next-version "$REPO_DIR" "$BUMP_TYPE" "$EXACT_VERSION"
+        run: get-next-version "$REPO_DIR" "$BUMP_TYPE" "$PRERELEASE" "$EXACT_VERSION"
         env:
           REPO_DIR: caller
 
