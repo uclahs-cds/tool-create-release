@@ -18,7 +18,7 @@ permissions:
 
 jobs:
   prepare-release:
-    uses: uclahs-cds/tool-create-release/.github/workflows/wf-prepare-release.yaml@v0.0.2
+    uses: uclahs-cds/tool-create-release/.github/workflows/wf-prepare-release.yaml@v0.0.3
     with:
       bump_type: "exact"
       exact_version: ${{ inputs.version }}
