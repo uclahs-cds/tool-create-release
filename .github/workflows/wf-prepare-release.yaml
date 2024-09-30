@@ -90,7 +90,7 @@ jobs:
           VERSION: ${{ steps.get-next-version.outputs.next_version }}
 
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.UCLAHS_CDS_REPO_READ_TOKEN }}
           path: caller
