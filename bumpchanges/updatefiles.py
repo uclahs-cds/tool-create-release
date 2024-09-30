@@ -113,7 +113,7 @@ def entrypoint():
         logging.debug("No version files need to be updated")
     else:
         try:
-            update_files(args.repo_root, args.version, args.files)
+            update_files(args.repo_root.resolve(), args.version, args.files)
         except Exception:
             logging.exception("Error updating files")
             raise
