@@ -35,7 +35,7 @@ VERSION_REGEX = re.compile(r"""
     )                       # Close `suffix` capture group
     $                       # End of line
     """,
-    flags=re.VERBOSE | re.IGNORECASE
+    flags=re.VERBOSE | re.IGNORECASE | re.MULTILINE
 )
 
 
