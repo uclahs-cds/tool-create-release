@@ -71,17 +71,15 @@ def update_file(version: str, version_file: Path):
     logging.log(NOTICE, "Version updated in %s", version_file)
     version_file.write_text(updated_text, encoding="utf-8")
 
-def update_files(version: str, files_str: str):
+def update_files(repo_root: Path, version: str, files_str: str):
     """Update each of the files with the new version number."""
-    version_files = [Path(item) for item in files_str.split(",")]
-
-    workspace = Path(os.environ["GITHUB_WORKSPACE"])
+    version_files = [repo_root / item for item in files_str.split(",")]
 
     for version_file in version_files:
         full_version_file = version_file.resolve()
 
         # Make sure it is a tracked file
-        if not full_version_file.is_relative_to(workspace):
+        if not full_version_file.is_relative_to(repo_root):
             raise ValueError(
                 f"Version file {version_file} is not within the git repo"
             )
@@ -103,6 +101,7 @@ def update_files(version: str, files_str: str):
 def entrypoint():
     """Main entrypoint."""
     parser = argparse.ArgumentParser()
+    parser.add_argument("repo_root", type=Path)
     parser.add_argument("version", type=str)
     parser.add_argument("files", type=str)
 
@@ -114,7 +113,7 @@ def entrypoint():
         logging.debug("No version files need to be updated")
     else:
         try:
-            update_files(args.version, args.files)
+            update_files(args.repo_root, args.version, args.files)
         except Exception:
             logging.exception("Error updating files")
             raise

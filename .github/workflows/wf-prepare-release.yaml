@@ -95,8 +95,9 @@ jobs:
           VERSION: ${{ steps.get-next-version.outputs.next_version }}
 
       - id: bump-version-files
-        run: bump-version-files "$VERSION" "$VERSIONFILES"
+        run: bump-version-files "$REPO_DIR" "$VERSION" "$VERSIONFILES"
         env:
+          REPO_DIR: caller
           VERSION: ${{ steps.get-next-version.outputs.next_version }}
           VERSIONFILES: ${{ inputs.version_files }}
 
