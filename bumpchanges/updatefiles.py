@@ -2,7 +2,6 @@
 
 import argparse
 import logging
-import os
 import re
 
 from pathlib import Path
@@ -62,13 +61,13 @@ def update_file(version: str, version_file: Path):
         ]
 
         assert len(changed_pairs) == update_count
-        logging.error("Multiple versions updated in %s", version_file)
+        logging.getLogger(__name__).error("Multiple versions updated in %s", version_file)
         for orig, updated in changed_pairs:
-            logging.debug("`%s` -> `%s`", orig, updated)
+            logging.getLogger(__name__).debug("`%s` -> `%s`", orig, updated)
 
         raise ValueError(f"Multiple versions changed in {version_file}")
 
-    logging.log(NOTICE, "Version updated in %s", version_file)
+    logging.getLogger(__name__).log(NOTICE, "Version updated in %s", version_file)
     version_file.write_text(updated_text, encoding="utf-8")
 
 def update_files(repo_root: Path, version: str, files_str: str):
@@ -77,6 +76,7 @@ def update_files(repo_root: Path, version: str, files_str: str):
 
     for version_file in version_files:
         full_version_file = version_file.resolve()
+        logging.getLogger(__name__).info("Trying to update %s", full_version_file)
 
         # Make sure it is a tracked file
         if not full_version_file.is_relative_to(repo_root):
@@ -110,10 +110,10 @@ def entrypoint():
     setup_logging()
 
     if not args.files:
-        logging.debug("No version files need to be updated")
+        logging.getLogger(__name__).debug("No version files need to be updated")
     else:
         try:
             update_files(args.repo_root.resolve(), args.version, args.files)
         except Exception:
-            logging.exception("Error updating files")
+            logging.getLogger(__name__).exception("Error updating files")
             raise
