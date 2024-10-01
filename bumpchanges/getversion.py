@@ -9,7 +9,7 @@ from pathlib import Path
 
 
 from .logging import setup_logging, NOTICE
-from .utils import get_closest_semver_ancestor, version_to_tag_str, tag_exists
+from .utils import get_closest_semver_ancestor, version_to_tag_str, tag_exists, encode_branch_name
 
 
 def get_next_semver(repo_dir: Path, bump_type: str, prerelease: bool) -> str:
@@ -101,6 +101,11 @@ def entrypoint():
     else:
         next_version = get_next_semver(args.repo_dir, args.bump_type, args.prerelease)
 
-    Path(os.environ["GITHUB_OUTPUT"]).write_text(
-        f"next_version={next_version}\n", encoding="utf-8"
-    )
+    outputs = {
+        "next_version": next_version,
+        "branch_name": encode_branch_name(next_version)
+    }
+
+    with Path(os.environ["GITHUB_OUTPUT"]).open(mode="w", encoding="utf-8") as outfile:
+        for key, value in outputs.items():
+            outfile.write(f"{key}={value}\n")

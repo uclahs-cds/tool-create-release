@@ -28,6 +28,24 @@ class Release:
     isPrerelease: bool
 
 
+BRANCH_PREFIX = "automation-create-release-"
+
+
+def encode_branch_name(version: str) -> str:
+    """Encode this version into a branch name."""
+    return BRANCH_PREFIX + version
+
+
+def decode_branch_name(branch: str) -> str:
+    """Decode the branch name into a version."""
+    version = branch.removeprefix(BRANCH_PREFIX)
+
+    if version == branch:
+        raise ValueError(f"Branch `{branch}` is not correctly encoded!")
+
+    return version
+
+
 def tag_to_semver(tag: str) -> semver.version.Version:
     """
     Return the Version associated with this git tag.
