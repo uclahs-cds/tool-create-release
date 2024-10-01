@@ -101,13 +101,12 @@ jobs:
           VERSION: ${{ steps.get-next-version.outputs.next_version }}
           VERSIONFILES: ${{ inputs.version_files }}
 
-
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.UCLAHS_CDS_REPO_READ_TOKEN }}
           path: caller
-          add-paths: ${{ inputs.changelog }}
+          add-paths: ${{ inputs.changelog }},${{ inputs.version_files }}
           commit-message: ${{ steps.bump-changelog.outputs.commit_message }}
           title: ${{ steps.bump-changelog.outputs.pr_title }}
           body-path: ${{ steps.bump-changelog.outputs.pr_bodyfile }}
