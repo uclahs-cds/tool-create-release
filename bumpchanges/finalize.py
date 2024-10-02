@@ -109,6 +109,7 @@ class PreparedRelease(LoggingMixin):
             else:
                 self.logger.info("... %s > %s, ignoring", prior_version, semantic_version)
 
+        existing_releases.sort(key=lambda x: x[0])
         self.logger.info("All prior releases: %s", existing_releases)
 
         if existing_releases:
