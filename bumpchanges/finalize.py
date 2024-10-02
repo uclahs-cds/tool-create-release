@@ -82,22 +82,34 @@ class PreparedRelease(LoggingMixin):
             self.logger.info("The current tag is not using a semantic version")
             return ""
 
+        self.logger.info("Searching for most recent prior release...")
+
         # Get the prior releases from GitHub
         existing_releases = []
         for release in get_github_releases_from_repo_name(self.owner_repo):
+            self.logger.info("Examining %s...", release.tagName)
+
             # Ignore drafts
             if release.isDraft:
+                self.logger.info("... draft, ignoring")
                 continue
 
             # Ignore non-semver tags
             try:
                 prior_version = tag_to_semver(release.tagName)
+                self.logger.info("... matches version %s ...", prior_version)
             except ValueError:
+                self.logger.info("... not semver, ignoring")
                 continue
 
             # Ignore higher versions
             if prior_version < semantic_version:
+                self.logger.info("... %s < %s, keeping for consideration", prior_version, semantic_version)
                 existing_releases.append((prior_version, release.tagName))
+            else:
+                self.logger.info("... %s > %s, ignoring", prior_version, semantic_version)
+
+        self.logger.info("All prior releases: %s", existing_releases)
 
         if existing_releases:
             self.logger.info("The most recent release tag is %s", existing_releases[-1][1])
