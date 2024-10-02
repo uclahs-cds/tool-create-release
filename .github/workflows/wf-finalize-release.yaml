@@ -33,13 +33,7 @@ jobs:
           ref: ${{ steps.workflow-parsing.outputs.SHA }}
           token: ${{ secrets.UCLAHS_CDS_REPO_READ_TOKEN }}
 
-      - id: parse-version
-        uses: actions/github-script@v7
+      - name: Finalize release
+        run: finalize-release "$DRAFT"
         env:
-          INPUT_DRAFT: ${{ inputs.draft }}
-        with:
-          # Use the separate token so that `published` events will be fired
-          github-token: ${{ secrets.UCLAHS_CDS_REPO_READ_TOKEN }}
-          script: |
-            const script = require('./scripts/finalize-release.js')
-            await script({github, context, core})
+          DRAFT: ${{ inputs.draft }}
