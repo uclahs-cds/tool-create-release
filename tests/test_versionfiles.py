@@ -1,8 +1,8 @@
 """Tests for the bumpchanges module."""
 
-from bumpchanges.updatefiles import update_file
-
 import pytest
+
+from bumpchanges.updatefiles import update_file
 
 
 # A list of tuples. The first element represents the existing version string in
