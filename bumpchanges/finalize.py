@@ -79,6 +79,7 @@ class PreparedRelease(LoggingMixin):
         try:
             semantic_version = tag_to_semver(self.tag)
         except ValueError:
+            self.logger.info("The current tag is not using a semantic version")
             return ""
 
         # Get the prior releases from GitHub
@@ -99,8 +100,10 @@ class PreparedRelease(LoggingMixin):
                 existing_releases.append((prior_version, release.tagName))
 
         if existing_releases:
+            self.logger.info("The most recent release tag is %s", existing_releases[-1][1])
             return existing_releases[-1][1]
 
+        self.logger.info("No prior release tags found")
         return ""
 
     def create(self, draft: bool):
