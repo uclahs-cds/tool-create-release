@@ -36,7 +36,9 @@ def mock_aliaser_internals(tmp_path):
 
     with patch(
         "bumpchanges.alias.dereference_tags", return_value=tag_to_commit_map
-    ), patch("bumpchanges.alias.get_github_releases_from_checkout", return_value=releases):
+    ), patch(
+        "bumpchanges.alias.get_github_releases_from_checkout", return_value=releases
+    ):
         aliaser = ReleaseAliaser(tmp_path)
         yield aliaser
 

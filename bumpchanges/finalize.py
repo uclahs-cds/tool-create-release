@@ -104,16 +104,24 @@ class PreparedRelease(LoggingMixin):
 
             # Ignore higher versions
             if prior_version < semantic_version:
-                self.logger.info("... %s < %s, keeping for consideration", prior_version, semantic_version)
+                self.logger.info(
+                    "... %s < %s, keeping for consideration",
+                    prior_version,
+                    semantic_version,
+                )
                 existing_releases.append((prior_version, release.tagName))
             else:
-                self.logger.info("... %s > %s, ignoring", prior_version, semantic_version)
+                self.logger.info(
+                    "... %s > %s, ignoring", prior_version, semantic_version
+                )
 
         existing_releases.sort(key=lambda x: x[0])
         self.logger.info("All prior releases: %s", existing_releases)
 
         if existing_releases:
-            self.logger.info("The most recent release tag is %s", existing_releases[-1][1])
+            self.logger.info(
+                "The most recent release tag is %s", existing_releases[-1][1]
+            )
             return existing_releases[-1][1]
 
         self.logger.info("No prior release tags found")
