@@ -158,7 +158,7 @@ def get_github_releases_from_repo_name(owner_repo: str) -> list[Release]:
     ]
 
 
-class NoAppropriateTagException(Exception):
+class NoAppropriateTagError(Exception):
     """Exception to indicate the lack of an appropriate ancestor tag."""
 
 
@@ -166,13 +166,13 @@ def get_nearest_ancestor_release_tag(owner_repo: str, tag_str: str) -> str:
     """
     Return the most appropriate starting tag for the GitHub release notes.
 
-    Raises `NoAppropriateTagException` if the input tag is not a semantic
+    Raises `NoAppropriateTagError` if the input tag is not a semantic
     version or if there is no appropriate ancestral tag.
     """
     try:
         semantic_version = tag_to_semver(tag_str)
     except ValueError as err:
-        raise NoAppropriateTagException(
+        raise NoAppropriateTagError(
             f"The input tag `{tag_str}` is not a semantic version"
         ) from err
 
@@ -215,7 +215,7 @@ def get_nearest_ancestor_release_tag(owner_repo: str, tag_str: str) -> str:
         logger.debug("The most recent release tag is %s", existing_releases[-1][1])
         return existing_releases[-1][1]
 
-    raise NoAppropriateTagException("No prior release tags found")
+    raise NoAppropriateTagError("No prior release tags found")
 
 
 def get_closest_semver_ancestor(

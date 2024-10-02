@@ -9,7 +9,7 @@ from bumpchanges.utils import (
     encode_branch_name,
     decode_branch_name,
     Release,
-    NoAppropriateTagException,
+    NoAppropriateTagError,
     get_nearest_ancestor_release_tag,
 )
 
@@ -48,12 +48,12 @@ RELEASES = [
     "tag,releases,result",
     [
         ("v1.0.2", RELEASES, nullcontext("v1.0.1")),
-        ("v0.0.2", RELEASES, pytest.raises(NoAppropriateTagException)),
+        ("v0.0.2", RELEASES, pytest.raises(NoAppropriateTagError)),
         ("v2.0.0-rc.2", RELEASES, nullcontext("v2.0.0-rc.1")),
         ("v2.0.4", RELEASES, nullcontext("v2.0.0")),
         ("v2.0.6", RELEASES, nullcontext("v2.0.0")),
         ("v3.0.0", RELEASES, nullcontext("v2.2.0-rc.1")),
-        ("valpha", RELEASES, pytest.raises(NoAppropriateTagException)),
+        ("valpha", RELEASES, pytest.raises(NoAppropriateTagError)),
     ],
 )
 def test_prior_release_tag(tag, releases, result):
