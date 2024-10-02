@@ -137,7 +137,7 @@ class PreparedRelease(LoggingMixin):
             "--repo",
             self.owner_repo,
             "--notes",
-            f"Automatically generated after merging {self.pr_number}.",
+            f"Automatically generated after merging #{self.pr_number}.",
             "--generate-notes",
             "--target",
             self.target,
