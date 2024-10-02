@@ -11,7 +11,12 @@ from pathlib import Path
 import semver
 
 from .logging import setup_logging, NOTICE, LoggingMixin
-from .utils import dereference_tags, tag_to_semver, get_github_releases, Release
+from .utils import (
+    dereference_tags,
+    tag_to_semver,
+    get_github_releases_from_checkout,
+    Release,
+)
 
 
 class IneligibleAliasError(Exception):
@@ -54,7 +59,7 @@ class ReleaseAliaser(LoggingMixin):
         for tag, commit in dereference_tags(self.repo_dir).items():
             self._add_git_tag(tag, commit)
 
-        for release in get_github_releases(self.repo_dir):
+        for release in get_github_releases_from_checkout(self.repo_dir):
             self._add_github_release(release)
 
     def assert_invariants(self):

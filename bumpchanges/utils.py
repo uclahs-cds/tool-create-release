@@ -1,5 +1,6 @@
 """Utility functions."""
 
+import argparse
 import logging
 import json
 import operator
@@ -108,7 +109,7 @@ def dereference_tags(repo_dir: Path) -> dict[str, str]:
     return tag_to_commit_map
 
 
-def get_github_releases(repo_dir: Path) -> list[Release]:
+def get_github_releases_from_checkout(repo_dir: Path) -> list[Release]:
     """Get all release data from GitHub."""
     return [
         Release(**item)
@@ -127,6 +128,31 @@ def get_github_releases(repo_dir: Path) -> list[Release]:
                     )),
                 ],
                 cwd=repo_dir,
+            )
+        )
+    ]
+
+
+def get_github_releases_from_repo_name(owner_repo: str) -> list[Release]:
+    """Get all release data from GitHub."""
+    return [
+        Release(**item)
+        for item in json.loads(
+            subprocess.check_output(
+                [
+                    "gh",
+                    "release",
+                    "list",
+                    "--repo",
+                    owner_repo,
+                    "--json",
+                    ",".join((
+                        "name",
+                        "tagName",
+                        "isDraft",
+                        "isPrerelease",
+                    )),
+                ],
             )
         )
     ]
@@ -207,3 +233,20 @@ def get_closest_semver_ancestor(
     )
 
     return closest_versions[-1]
+
+
+def str_to_bool(value: str) -> bool:
+    """Convert a string to a boolean (case-insensitive)."""
+    truthy_values = {"true", "t", "yes", "y", "1"}
+    falsey_values = {"false", "f", "no", "n", "0"}
+
+    # Normalize input to lowercase
+    value = value.lower()
+
+    if value in truthy_values:
+        return True
+
+    if value in falsey_values:
+        return False
+
+    raise argparse.ArgumentTypeError(f"Invalid boolean value: '{value}'")
