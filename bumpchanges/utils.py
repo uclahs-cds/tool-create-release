@@ -158,6 +158,66 @@ def get_github_releases_from_repo_name(owner_repo: str) -> list[Release]:
     ]
 
 
+class NoAppropriateTagException(Exception):
+    """Exception to indicate the lack of an appropriate ancestor tag."""
+
+
+def get_nearest_ancestor_release_tag(owner_repo: str, tag_str: str) -> str:
+    """
+    Return the most appropriate starting tag for the GitHub release notes.
+
+    Raises `NoAppropriateTagException` if the input tag is not a semantic
+    version or if there is no appropriate ancestral tag.
+    """
+    try:
+        semantic_version = tag_to_semver(tag_str)
+    except ValueError as err:
+        raise NoAppropriateTagException(
+            f"The input tag `{tag_str}` is not a semantic version"
+        ) from err
+
+    logger = logging.getLogger(__name__)
+    logger.debug("Searching for most recent prior release...")
+
+    # Get the prior releases from GitHub
+    existing_releases = []
+    for release in get_github_releases_from_repo_name(owner_repo):
+        logger.debug("Examining %s...", release.tagName)
+
+        # Ignore drafts
+        if release.isDraft:
+            logger.debug("... draft, ignoring")
+            continue
+
+        # Ignore non-semver tags
+        try:
+            prior_version = tag_to_semver(release.tagName)
+            logger.debug("... matches version %s ...", prior_version)
+        except ValueError:
+            logger.debug("... not semver, ignoring")
+            continue
+
+        # Ignore higher versions
+        if prior_version < semantic_version:
+            logger.debug(
+                "... %s < %s, keeping for consideration",
+                prior_version,
+                semantic_version,
+            )
+            existing_releases.append((prior_version, release.tagName))
+        else:
+            logger.debug("... %s > %s, ignoring", prior_version, semantic_version)
+
+    existing_releases.sort(key=lambda x: x[0])
+    logger.debug("All prior releases: %s", existing_releases)
+
+    if existing_releases:
+        logger.debug("The most recent release tag is %s", existing_releases[-1][1])
+        return existing_releases[-1][1]
+
+    raise NoAppropriateTagException("No prior release tags found")
+
+
 def get_closest_semver_ancestor(
     repo_dir: Path, allow_prerelease: bool = False
 ) -> semver.version.Version:
