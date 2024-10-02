@@ -19,6 +19,7 @@ VERSION_REGEX = re.compile(
         version             # Literal `version`
         (?:__)?             # Optional literal `__`
         (?P=vquote)         # `'`, `"`, or nothing (back-reference to `vquote`)
+        (?:\s*:\s*str\b)?   # Optional literal `: str` (for python typing)
         (?:
             \s*             # Any whitespace
             [=:]?           # `=`, `:`, or nothing

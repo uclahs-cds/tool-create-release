@@ -25,6 +25,11 @@ version_strings = [
         """__version__ = 2.3.4""",
     ),
     (
+        # Python-style with typing
+        """__version__: str = '1.1.0'""",
+        """__version__: str = '2.3.4'""",
+    ),
+    (
         # Plain string version
         '''version = "1.1.0"''',
         '''version = "2.3.4"''',
