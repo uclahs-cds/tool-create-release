@@ -33,6 +33,14 @@ jobs:
           ref: ${{ steps.workflow-parsing.outputs.SHA }}
           token: ${{ secrets.UCLAHS_CDS_REPO_READ_TOKEN }}
 
+      - name: Set up python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      # Install the bundled package
+      - run: pip install .
+
       - name: Finalize release
         run: finalize-release "$DRAFT"
         env:
