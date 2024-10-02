@@ -9,7 +9,13 @@ from pathlib import Path
 
 
 from .logging import setup_logging, NOTICE
-from .utils import get_closest_semver_ancestor, version_to_tag_str, tag_exists
+from .utils import (
+    get_closest_semver_ancestor,
+    version_to_tag_str,
+    tag_exists,
+    str_to_bool,
+    encode_branch_name,
+)
 
 
 def get_next_semver(repo_dir: Path, bump_type: str, prerelease: bool) -> str:
@@ -64,23 +70,6 @@ def validate_version_bump(
         raise RuntimeError()
 
 
-def str_to_bool(value: str) -> bool:
-    """Convert a string to a boolean (case-insensitive)."""
-    truthy_values = {"true", "t", "yes", "y", "1"}
-    falsey_values = {"false", "f", "no", "n", "0"}
-
-    # Normalize input to lowercase
-    value = value.lower()
-
-    if value in truthy_values:
-        return True
-
-    if value in falsey_values:
-        return False
-
-    raise argparse.ArgumentTypeError(f"Invalid boolean value: '{value}'")
-
-
 def entrypoint():
     """Main entrypoint for this module."""
     setup_logging()
@@ -101,6 +90,11 @@ def entrypoint():
     else:
         next_version = get_next_semver(args.repo_dir, args.bump_type, args.prerelease)
 
-    Path(os.environ["GITHUB_OUTPUT"]).write_text(
-        f"next_version={next_version}\n", encoding="utf-8"
-    )
+    outputs = {
+        "next_version": next_version,
+        "branch_name": encode_branch_name(next_version),
+    }
+
+    with Path(os.environ["GITHUB_OUTPUT"]).open(mode="w", encoding="utf-8") as outfile:
+        for key, value in outputs.items():
+            outfile.write(f"{key}={value}\n")

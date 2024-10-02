@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- Add `version_files` input to update hard-coded version numbers during release
+
+### Changed
+
+- Move release finalization logic from JavaScript to python
+
+### Fixed
+
+- GitHub auto-generated release notes now link to prior tag, not alias
+
 ## [0.0.3] - 2024-09-30
 
 ### Added

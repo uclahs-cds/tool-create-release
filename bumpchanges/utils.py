@@ -1,5 +1,6 @@
 """Utility functions."""
 
+import argparse
 import logging
 import json
 import operator
@@ -26,6 +27,24 @@ class Release:
 
     isDraft: bool
     isPrerelease: bool
+
+
+BRANCH_PREFIX = "automation-create-release-"
+
+
+def encode_branch_name(version: str) -> str:
+    """Encode this version into a branch name."""
+    return BRANCH_PREFIX + version
+
+
+def decode_branch_name(branch: str) -> str:
+    """Decode the branch name into a version."""
+    version = branch.removeprefix(BRANCH_PREFIX)
+
+    if version == branch:
+        raise ValueError(f"Branch `{branch}` is not correctly encoded!")
+
+    return version
 
 
 def tag_to_semver(tag: str) -> semver.version.Version:
@@ -90,7 +109,7 @@ def dereference_tags(repo_dir: Path) -> dict[str, str]:
     return tag_to_commit_map
 
 
-def get_github_releases(repo_dir: Path) -> list[Release]:
+def get_github_releases_from_checkout(repo_dir: Path) -> list[Release]:
     """Get all release data from GitHub."""
     return [
         Release(**item)
@@ -112,6 +131,91 @@ def get_github_releases(repo_dir: Path) -> list[Release]:
             )
         )
     ]
+
+
+def get_github_releases_from_repo_name(owner_repo: str) -> list[Release]:
+    """Get all release data from GitHub."""
+    return [
+        Release(**item)
+        for item in json.loads(
+            subprocess.check_output(
+                [
+                    "gh",
+                    "release",
+                    "list",
+                    "--repo",
+                    owner_repo,
+                    "--json",
+                    ",".join((
+                        "name",
+                        "tagName",
+                        "isDraft",
+                        "isPrerelease",
+                    )),
+                ],
+            )
+        )
+    ]
+
+
+class NoAppropriateTagError(Exception):
+    """Exception to indicate the lack of an appropriate ancestor tag."""
+
+
+def get_nearest_ancestor_release_tag(owner_repo: str, tag_str: str) -> str:
+    """
+    Return the most appropriate starting tag for the GitHub release notes.
+
+    Raises `NoAppropriateTagError` if the input tag is not a semantic
+    version or if there is no appropriate ancestral tag.
+    """
+    try:
+        semantic_version = tag_to_semver(tag_str)
+    except ValueError as err:
+        raise NoAppropriateTagError(
+            f"The input tag `{tag_str}` is not a semantic version"
+        ) from err
+
+    logger = logging.getLogger(__name__)
+    logger.debug("Searching for most recent prior release...")
+
+    # Get the prior releases from GitHub
+    existing_releases = []
+    for release in get_github_releases_from_repo_name(owner_repo):
+        logger.debug("Examining %s...", release.tagName)
+
+        # Ignore drafts
+        if release.isDraft:
+            logger.debug("... draft, ignoring")
+            continue
+
+        # Ignore non-semver tags
+        try:
+            prior_version = tag_to_semver(release.tagName)
+            logger.debug("... matches version %s ...", prior_version)
+        except ValueError:
+            logger.debug("... not semver, ignoring")
+            continue
+
+        # Ignore higher versions
+        if prior_version < semantic_version:
+            logger.debug(
+                "... %s < %s, keeping for consideration",
+                prior_version,
+                semantic_version,
+            )
+            existing_releases.append((prior_version, release.tagName))
+        else:
+            logger.debug("... %s > %s, ignoring", prior_version, semantic_version)
+
+    existing_releases.sort(key=lambda x: x[0])
+    logger.debug("All prior releases: %s", existing_releases)
+
+    if existing_releases:
+        logger.debug("The most recent release tag is %s", existing_releases[-1][1])
+        return existing_releases[-1][1]
+
+    raise NoAppropriateTagError("No prior release tags found")
 
 
 def get_closest_semver_ancestor(
@@ -189,3 +293,20 @@ def get_closest_semver_ancestor(
     )
 
     return closest_versions[-1]
+
+
+def str_to_bool(value: str) -> bool:
+    """Convert a string to a boolean (case-insensitive)."""
+    truthy_values = {"true", "t", "yes", "y", "1"}
+    falsey_values = {"false", "f", "no", "n", "0"}
+
+    # Normalize input to lowercase
+    value = value.lower()
+
+    if value in truthy_values:
+        return True
+
+    if value in falsey_values:
+        return False
+
+    raise argparse.ArgumentTypeError(f"Invalid boolean value: '{value}'")
