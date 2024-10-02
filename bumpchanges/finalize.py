@@ -22,7 +22,7 @@ from .utils import (
 )
 
 
-class InvalidReleaseException(Exception):
+class InvalidReleaseError(Exception):
     """Exception indicating that the workflow should not have run."""
 
 
@@ -44,7 +44,7 @@ class PreparedRelease(LoggingMixin):
     def from_environment(cls):
         """Parse a PreparedRelease from the environment."""
         if os.environ["GITHUB_EVENT_NAME"] != "pull_request":
-            raise InvalidReleaseException("Workflow requires pull_request events")
+            raise InvalidReleaseError("Workflow requires pull_request events")
 
         with Path(os.environ["GITHUB_EVENT_PATH"]).open(encoding="utf-8") as infile:
             event_data = json.load(infile)
@@ -53,7 +53,7 @@ class PreparedRelease(LoggingMixin):
             not event_data["pull_request"]["merged"]
             or event_data["pull_request"]["state"] != "closed"
         ):
-            raise InvalidReleaseException(
+            raise InvalidReleaseError(
                 "Workflow should only be called on merged and closed PRs"
             )
 
