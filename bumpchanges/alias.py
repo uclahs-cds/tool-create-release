@@ -21,7 +21,7 @@ from .utils import (
 
 class IneligibleAliasError(Exception):
     """
-    Exception to major alias shouldn't be updated.
+    Exception to indicate that the major alias shouldn't be updated.
 
     These are expected and handle cases like prereleases, outdated tags, etc.
     """
