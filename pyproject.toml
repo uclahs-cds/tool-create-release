@@ -22,7 +22,7 @@ maintainers = [
 
 [project.scripts]
 get-next-version = "bumpchanges:getversion.entrypoint"
-finalize-release= "bumpchanges:finalize.entrypoint"
+finalize-release = "bumpchanges:finalize.entrypoint"
 bump-changelog = "bumpchanges:bump.entrypoint"
 alias-release = "bumpchanges:alias.entrypoint"
 bump-version-files = "bumpchanges:updatefiles.entrypoint"
