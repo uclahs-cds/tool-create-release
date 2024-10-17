@@ -8,7 +8,7 @@
 * [Parameters](#parameters)
   + [Updating hard-coded strings with `version_files`](#updating-hard-coded-strings-with-version_files)
 
-This set of reusable workflows manage the complexity of creating and tagging new software releases on GitHub.
+This set of reusable workflows manages the complexity of creating and tagging new software releases on GitHub.
 
 ## Versioning Standards
 
