@@ -15,6 +15,5 @@ permissions:
 
 jobs:
   update-alias:
-    uses: uclahs-cds/tool-create-release/.github/workflows/wf-alias-release.yaml@v1.0.0
-    # Secrets are only required until tool-create-release is made public
+    uses: uclahs-cds/tool-create-release/.github/workflows/wf-alias-release.yaml@v1
     secrets: inherit
