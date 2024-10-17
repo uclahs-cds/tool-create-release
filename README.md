@@ -95,7 +95,7 @@ You can add a badge that links to the release preparation workflow by including 
 ```
 
 #### Private / Internal Repository
-[![Prepare release](https://img.shields.io/badge/Action-Create%20New%20Release-blue)](https://github.com/uclahs-cds/tool-submit-nf/actions/workflows/internal-prepare.yaml)
+[![Prepare release](https://img.shields.io/badge/Action-Create%20New%20Release-blue)](https://github.com/uclahs-cds/tool-create-release/actions/workflows/internal-prepare.yaml)
 ```
 [![Prepare release](https://img.shields.io/badge/Action-Create%20New%20Release-blue)](https://github.com/ORG/REPO/actions/workflows/internal-prepare.yaml)
 ```
