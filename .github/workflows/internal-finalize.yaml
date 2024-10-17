@@ -20,5 +20,3 @@ jobs:
     if: ${{ github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'automation-create-release') }}
     uses: ./.github/workflows/wf-finalize-release.yaml
     secrets: inherit
-    with:
-      draft: true
