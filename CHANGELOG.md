@@ -14,7 +14,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Fixed
 
-- Corrected private repository badge template in README
+- Correct private repository badge template in README
 
 ## [1.0.1] - 2024-10-18
 
