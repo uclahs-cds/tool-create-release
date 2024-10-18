@@ -20,6 +20,5 @@ jobs:
     if: ${{ github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'automation-create-release') }}
     uses: uclahs-cds/tool-create-release/.github/workflows/wf-finalize-release.yaml@v1
     secrets: inherit
-    # Uncomment these lines to draft the release rather than of publishing
-    # with:
-    #   draft: true
+    with:
+      draft: false
