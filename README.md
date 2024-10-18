@@ -1,6 +1,14 @@
 # Automations for GitHub Releases
 
-This set of reusable workflows manage the complexity of creating and tagging new software releases on GitHub.
+[![GitHub release](https://img.shields.io/github/v/release/uclahs-cds/tool-create-release)](https://github.com/uclahs-cds/tool-create-release/actions/workflows/internal-prepare.yaml)
+
+* [Versioning Standards](#versioning-standards)
+* [Usage](#usage)
+  * [README Badges](#readme-badges)
+* [Parameters](#parameters)
+  + [Updating hard-coded strings with `version_files`](#updating-hard-coded-strings-with-version_files)
+
+This set of reusable workflows manages the complexity of creating and tagging new software releases on GitHub.
 
 ## Versioning Standards
 
@@ -74,6 +82,22 @@ Usage of this tool requires adding three workflows to each calling repository (n
 
         checkout main
         merge prepare_patch tag: "v1" tag: "v1.0.1"
+```
+
+### README Badges
+
+You can add a badge that links to the release preparation workflow by including one of these Markdown snippets (after replacing `ORG` and `REPO`) to your README:
+
+#### Public Repository
+[![GitHub release](https://img.shields.io/github/v/release/uclahs-cds/tool-create-release)](https://github.com/uclahs-cds/tool-create-release/actions/workflows/internal-prepare.yaml)
+```
+[![GitHub release](https://img.shields.io/github/v/release/ORG/REPO)](https://github.com/ORG/REPO/actions/workflows/prepare-release.yaml)
+```
+
+#### Private / Internal Repository
+[![Prepare release](https://img.shields.io/badge/Action-Create%20New%20Release-blue)](https://github.com/uclahs-cds/tool-create-release/actions/workflows/internal-prepare.yaml)
+```
+[![Prepare release](https://img.shields.io/badge/Action-Create%20New%20Release-blue)](https://github.com/ORG/REPO/actions/workflows/internal-prepare.yaml)
 ```
 
 ## Parameters
