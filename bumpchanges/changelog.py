@@ -189,6 +189,17 @@ class ChangelogVersion:
             )
             kwargs["version_str"] = kwargs["version_str"][1:]
 
+        # Correctly case `Unreleased`
+        if (
+            kwargs["version_str"] != cls.UNRELEASED_VERSION
+            and kwargs["version_str"].lower() == cls.UNRELEASED_VERSION.lower()
+        ):
+            logging.getLogger(__name__).warning(
+                "Case-correcting Changelog version `%s`",
+                kwargs["version_str"],
+            )
+            kwargs["version_str"] = cls.UNRELEASED_VERSION
+
         # The rest of the tokens should be the lists. Strip any rulers now.
         tokens = [token for token in tokens[3:] if token.type != "hr"]
 
