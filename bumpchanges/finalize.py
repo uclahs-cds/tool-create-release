@@ -191,6 +191,8 @@ def entrypoint():
         new_release = PreparedRelease.from_environment()
 
         archival_path = Path(args.archival_path) if args.archival_path else None
+        if archival_path and not archival_path.exists():
+            archival_path = None
 
         if archival_path:
             # Sanity-check that the cloned name matches the environment
