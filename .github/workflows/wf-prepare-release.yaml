@@ -28,9 +28,21 @@ on:
         required: false
       version_files:
         type: string
-        description: Comma-separated list of relative paths to files with version numbers that should be updated. Every file must have exactly one line that looks like `version = "xxxx"` - some effort is made to handle different quoting styles, leading underscores, etc.
+        description: >
+          Comma-separated list of relative paths to files with version numbers
+          that should be updated. Every file must have exactly one line that
+          looks like `version = "xxxx"` - some effort is made to handle
+          different quoting styles, leading underscores, etc.
         required: false
         default: ""
+
+    secrets:
+      token:
+        description: >
+          Personal access token (PAT) used to open the pull request. Must be
+          provided in order for any actions to run in response to the PR
+          creation.
+        required: false
 
 jobs:
   prepare-release:
@@ -50,7 +62,7 @@ jobs:
         env:
           REPO: ${{ github.repository }}
           RUN_ID: ${{ github.run_id }}
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.token || github.token }}
         run: |
           ACTION_DATA=$(gh api "repos/$REPO/actions/runs/$RUN_ID")
           echo "::debug::$ACTION_DATA"
@@ -63,7 +75,6 @@ jobs:
           repository: uclahs-cds/tool-create-release
           path: reusable
           ref: ${{ steps.workflow-parsing.outputs.SHA }}
-          token: ${{ secrets.UCLAHS_CDS_REPO_READ_TOKEN }}
 
       - name: Checkout calling repository
         uses: actions/checkout@v4
@@ -104,7 +115,7 @@ jobs:
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
         with:
-          token: ${{ secrets.UCLAHS_CDS_REPO_READ_TOKEN }}
+          token: ${{ secrets.token || github.token }}
           path: caller
           add-paths: ${{ inputs.changelog }},${{ inputs.version_files }}
           commit-message: ${{ steps.bump-changelog.outputs.commit_message }}
