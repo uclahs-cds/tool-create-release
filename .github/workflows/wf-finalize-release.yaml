@@ -44,7 +44,6 @@ jobs:
           repository: uclahs-cds/tool-create-release
           path: reusable
           ref: ${{ steps.workflow-parsing.outputs.SHA }}
-          token: ${{ secrets.token || github.token }}
 
       - name: Set up python
         uses: actions/setup-python@v5
