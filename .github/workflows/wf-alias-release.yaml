@@ -3,12 +3,12 @@ on:
   workflow_call:
     inputs:
       # These inputs are taken directly from stefanzweifel/git-auto-commit-action
-      commit_user_name:
+      commit-user-name:
         type: string
         description: Name used for the commit user
         required: false
         default: github-actions[bot]
-      commit_user_email:
+      commit-user-email:
         type: string
         description: Email address used for the commit user
         required: false
@@ -71,5 +71,5 @@ jobs:
         env:
           REPO_DIR: caller
           GH_TOKEN: ${{ secrets.token || github.token }}
-          COMMIT_USER: ${{ inputs.commit_user_name }}
-          COMMIT_EMAIL: ${{ inputs.commit_user_email }}
+          COMMIT_USER: ${{ inputs.commit-user-name }}
+          COMMIT_EMAIL: ${{ inputs.commit-user-email }}
