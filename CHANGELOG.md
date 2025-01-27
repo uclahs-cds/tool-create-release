@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- Add `attach-tarball` argument to finalize workflow to attach source tarball with release
+
+### Changed
+
+- Remove hard-coded UCLA secrets, add explicit `secrets` inputs to workflows
+
 ## [1.0.3] - 2024-11-01
 
 ### Fixed
