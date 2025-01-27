@@ -109,6 +109,13 @@ class PreparedRelease(LoggingMixin):
         release_url = subprocess.check_output(args).decode("utf-8").strip()
         self.logger.log(NOTICE, "Release created at %s", release_url)
 
+        # Save the release's tag for following steps
+        with Path(os.environ["GITHUB_OUTPUT"]).open(
+            mode="w", encoding="utf-8"
+        ) as outfile:
+            # Write out a string with the artifact's name
+            outfile.write(f"RELEASE_TAG={self.tag}\n")
+
         # Post a comment linking to the new release
         comment_header = "*Bleep bloop, I am a robot.*"
         comment_body = textwrap.fill(

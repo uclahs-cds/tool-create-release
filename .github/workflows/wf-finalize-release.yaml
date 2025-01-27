@@ -6,6 +6,16 @@ on:
         description: If true (the default), draft the release for later manual approval.
         type: boolean
         default: true
+      attach-tarball:
+        description: If true, attach a tarball including all submodules to the release.
+        type: boolean
+        default: false
+      token:
+        description: >
+          Personal access token (PAT) used to fetch the repository and submodules.
+          Required if `draft` is false (to allow triggering alias workflow) or if
+          `attach-tarball` is true _and_ one or more of the submodules are private.
+        type: string
 
 jobs:
   finalize-release:
@@ -19,7 +29,7 @@ jobs:
         env:
           REPO: ${{ github.repository }}
           RUN_ID: ${{ github.run_id }}
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ inputs.token || github.token }}
         run: |
           ACTION_DATA=$(gh api "repos/$REPO/actions/runs/$RUN_ID")
           echo "::debug::$ACTION_DATA"
@@ -32,7 +42,7 @@ jobs:
           repository: uclahs-cds/tool-create-release
           path: reusable
           ref: ${{ steps.workflow-parsing.outputs.SHA }}
-          token: ${{ secrets.UCLAHS_CDS_REPO_READ_TOKEN }}
+          token: ${{ inputs.token || github.token }}
 
       - name: Set up python
         uses: actions/setup-python@v5
@@ -43,8 +53,42 @@ jobs:
       - run: pip install ./reusable
 
       - name: Finalize release
+        id: finalize-release
         run: finalize-release "$DRAFT"
         env:
           DRAFT: ${{ inputs.draft }}
           # Use the other token to allow the aliasing workflow to run
-          GH_TOKEN: ${{ secrets.UCLAHS_CDS_REPO_READ_TOKEN }}
+          GH_TOKEN: ${{ inputs.token || github.token }}
+
+      # The following steps are all gated behind inputs.attach-tarball being true
+
+      - name: Establish variables for tarball attachment
+        id: set-repo-name
+        if: ${{ inputs.attach-tarball == 'true' }}
+        env:
+          RELEASE_TAG: ${{ steps.finalize-release.outputs.RELEASE_TAG }}
+        run: |
+          REPO_NAME=$(echo "${{ github.repository }}" | cut -d'/' -f2)
+          echo "REPO_NAME=$REPO_NAME" >> "$GITHUB_OUTPUT"
+          echo "SOURCE_TARBALL=$REPO_NAME-$RELEASE_TAG.tar.gz" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v4
+        if: ${{ inputs.attach-tarball == 'true' }}
+        with:
+          path: ${{ steps.set-repo-name.outputs.REPO_NAME }}
+          submodules: 'recursive'
+          token: ${{ inputs.token || github.token }}
+
+      - name: Attach source tarball with submodules to release
+        if: ${{ inputs.attach-tarball == 'true' }}
+        env:
+          RELEASE_TAG: ${{ steps.finalize-release.outputs.RELEASE_TAG }}
+          REPO_NAME: ${{ steps.set-repo-name.outputs.REPO_NAME }}
+          SOURCE_TARBALL: ${{ steps.set-repo-name.outputs.SOURCE_TARBALL }}
+          GH_TOKEN: ${{ inputs.token || github.token }}
+        run: |
+          tar --exclude-vcs -czvf "$SOURCE_TARBALL" "$REPO_NAME"
+          gh release upload \
+            --repo "$GITHUB_REPOSITORY" \
+            "$RELEASE_TAG" \
+            "$SOURCE_TARBALL#Source code with submodules (tar.gz)"
