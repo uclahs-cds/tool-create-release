@@ -66,7 +66,7 @@ jobs:
 
       - name: Establish variables for tarball attachment
         id: set-repo-name
-        if: ${{ inputs.attach-tarball == 'true' }}
+        if: ${{ inputs.attach-tarball }}
         env:
           RELEASE_TAG: ${{ steps.finalize-release.outputs.RELEASE_TAG }}
         run: |
@@ -75,14 +75,14 @@ jobs:
           echo "SOURCE_TARBALL=$REPO_NAME-$RELEASE_TAG.tar.gz" >> "$GITHUB_OUTPUT"
 
       - uses: actions/checkout@v4
-        if: ${{ inputs.attach-tarball == 'true' }}
+        if: ${{ inputs.attach-tarball }}
         with:
           path: ${{ steps.set-repo-name.outputs.REPO_NAME }}
           submodules: 'recursive'
           token: ${{ secrets.token || github.token }}
 
       - name: Attach source tarball with submodules to release
-        if: ${{ inputs.attach-tarball == 'true' }}
+        if: ${{ inputs.attach-tarball }}
         env:
           RELEASE_TAG: ${{ steps.finalize-release.outputs.RELEASE_TAG }}
           REPO_NAME: ${{ steps.set-repo-name.outputs.REPO_NAME }}
