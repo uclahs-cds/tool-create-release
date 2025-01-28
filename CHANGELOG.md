@@ -15,6 +15,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Changed
 
 - Remove hard-coded UCLA secrets, add explicit `secrets` inputs to workflows
+- Automatically delete release branch after merging pull request
 
 ## [1.0.3] - 2024-11-01
 

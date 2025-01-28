@@ -51,6 +51,7 @@ Usage of this tool requires adding three workflows to each calling repository (n
   * By default the new release is a draft, so no public release or tag are created without user intervention.
 1. Optionally, attach a source tarball including all submodules to the new release.
 1. Comment on the release PR with a link to the new release.
+1. Delete the merged release branch.
 
 ```mermaid
     gitGraph
