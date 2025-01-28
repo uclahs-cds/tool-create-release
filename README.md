@@ -51,6 +51,7 @@ Usage of this tool requires adding three workflows to each calling repository (n
   * By default the new release is a draft, so no public release or tag are created without user intervention.
 1. Optionally, attach a source tarball including all submodules to the new release.
 1. Comment on the release PR with a link to the new release.
+1. Delete the merged release branch.
 
 ```mermaid
     gitGraph
@@ -118,7 +119,7 @@ Parameters can be specified using the [`with`](https://docs.github.com/en/action
 | `wf-alias-release.yaml` | `commit-user-name` | string | no | User name to use while tagging new commits (defaults to `github-actions[bot]`) |
 | `wf-alias-release.yaml` | `commit-user-email` | string | no | User email to use while tagging new commits (defaults to `41898282+github-actions[bot]@users.noreply.github.com`) |
 
-All four workflows also accept a `token` secret which is required for full functionality (e.g. CI/CD checks on the opened pull request). The provided [personal access token](https://github.com/settings/tokens/new) should be stored as a secret in the repository and have the following scopes:
+All three workflows also accept a `token` secret which is required for full functionality (e.g. CI/CD checks on the opened pull request). The provided [personal access token](https://github.com/settings/tokens/new) should be stored as a secret in the repository and have the following scopes:
 
 * `repo`
 * `workflow`
