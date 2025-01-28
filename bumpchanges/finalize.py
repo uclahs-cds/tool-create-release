@@ -9,6 +9,7 @@ import textwrap
 
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Optional
 
 
 from .logging import setup_logging, NOTICE, LoggingMixin
@@ -75,7 +76,7 @@ class PreparedRelease(LoggingMixin):
         except ValueError:
             pass
 
-    def create(self, draft: bool):
+    def create(self, draft: bool, archival_path: Optional[Path]):
         """Create the release and return the URL."""
         args = [
             "gh",
@@ -119,6 +120,45 @@ class PreparedRelease(LoggingMixin):
             width=2000,
         )
 
+        # Create and upload a tarball if the archival path exists
+        if archival_path:
+            self.logger.info("Creating tarball")
+
+            tarball = Path(
+                os.environ["GITHUB_WORKSPACE"],
+                f"{archival_path.name}-{self.tag}.tar.gz",
+            )
+
+            subprocess.run(
+                ["tar", "--exclude-vcs", "-czvf", tarball, archival_path.name],
+                cwd=archival_path.parent,
+                check=True,
+            )
+
+            try:
+                subprocess.run(
+                    [
+                        "gh",
+                        "release",
+                        "upload",
+                        self.tag,
+                        "--repo",
+                        self.owner_repo,
+                        f"{tarball}#Source code with submodules (tar.gz)",
+                    ],
+                    check=True,
+                )
+                comment_body += (
+                    "\n\nA source tarball including all submodules "
+                    "has been attached to the release."
+                )
+
+            except subprocess.CalledProcessError:
+                self.logger.error("Failed to attach tarball to release!")
+                comment_body += (
+                    "\n\n**ERROR:** Failed to attach source tarball to release!"
+                )
+
         subprocess.run(
             [
                 "gh",
@@ -140,6 +180,9 @@ def entrypoint():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("draft", type=str_to_bool)
+    parser.add_argument(
+        "--archival-path", help="Path to a directory to tar and attach to the release"
+    )
 
     args = parser.parse_args()
 
@@ -147,8 +190,19 @@ def entrypoint():
         # Parse the environment to create the release
         new_release = PreparedRelease.from_environment()
 
+        archival_path = Path(args.archival_path) if args.archival_path else None
+        if archival_path and not archival_path.exists():
+            archival_path = None
+
+        if archival_path:
+            # Sanity-check that the cloned name matches the environment
+            repo_name = new_release.owner_repo.split("/", maxsplit=1)[-1]
+            if repo_name != archival_path.name:
+                raise RuntimeError(f"{repo_name} != {archival_path.name}!")
+
         # Draft or create the release
-        new_release.create(args.draft)
+        new_release.create(args.draft, archival_path)
+
     except:
         logging.getLogger(__name__).exception("Failed to create new release")
         raise
