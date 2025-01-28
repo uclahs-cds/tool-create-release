@@ -15,6 +15,7 @@ from typing import Optional
 from .logging import setup_logging, NOTICE, LoggingMixin
 from .utils import (
     decode_branch_name,
+    delete_branch,
     version_to_tag_str,
     tag_to_semver,
     str_to_bool,
@@ -206,3 +207,6 @@ def entrypoint():
     except:
         logging.getLogger(__name__).exception("Failed to create new release")
         raise
+
+    # Delete the branch
+    delete_branch(new_release.owner_repo, os.environ["GITHUB_HEAD_REF"])

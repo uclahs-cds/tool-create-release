@@ -47,6 +47,32 @@ def decode_branch_name(branch: str) -> str:
     return version
 
 
+def delete_branch(owner_repo: str, branch: str):
+    """Delete a branch from GitHub by name. Gracefully handles failure."""
+    logger = logging.getLogger(__name__)
+    try:
+        subprocess.run(
+            [
+                "gh",
+                "api",
+                "--method",
+                "DELETE",
+                "-H",
+                "Accept: application/vnd.github+json",
+                "-H",
+                "X-GitHub-Api-Version: 2022-11-28",
+                f"/repos/{owner_repo}/git/refs/heads/{branch}",
+            ],
+            check=True,
+            capture_output=True,
+        )
+        logger.info("Deleted branch %s", branch)
+    except subprocess.CalledProcessError as err:
+        logger.info("Failed to delete branch %s", branch)
+        logger.info("Stdout: %s", err.stdout.decode("utf-8"))
+        logger.info("Stderr: %s", err.stderr.decode("utf-8"))
+
+
 def tag_to_semver(tag: str) -> semver.version.Version:
     """
     Return the Version associated with this git tag.
