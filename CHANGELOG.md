@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Fixed
+
+- Added `import mdformat.renderer` to fix issue with mdformat v0.7.22
+
 ## [1.0.3] - 2024-11-01
 
 ### Fixed

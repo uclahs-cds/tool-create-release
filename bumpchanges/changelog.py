@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import ClassVar, Optional
 
 import mdformat
+import mdformat.renderer
 from markdown_it import MarkdownIt
 from markdown_it.token import Token
 
