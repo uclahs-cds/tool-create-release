@@ -17,6 +17,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Remove hard-coded UCLA secrets, add explicit `secrets` inputs to workflows
 - Automatically delete release branch after merging pull request
 
+### Fixed
+
+- Added `import mdformat.renderer` to fix issue with mdformat v0.7.22
+
 ## [1.0.3] - 2024-11-01
 
 ### Fixed
