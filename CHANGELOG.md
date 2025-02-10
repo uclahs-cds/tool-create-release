@@ -8,15 +8,6 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Unreleased
 
-### Added
-
-- Add `attach-tarball` argument to finalize workflow to attach source tarball with release
-
-### Changed
-
-- Remove hard-coded UCLA secrets, add explicit `secrets` inputs to workflows
-- Automatically delete release branch after merging pull request
-
 ### Fixed
 
 - Added `import mdformat.renderer` to fix issue with mdformat v0.7.22
