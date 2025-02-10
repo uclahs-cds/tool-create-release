@@ -16,5 +16,4 @@ permissions:
 jobs:
   update-alias:
     uses: uclahs-cds/tool-create-release/.github/workflows/wf-alias-release.yaml@v1
-    secrets:
-      token: ${{ secrets.YOUR_PAT }}
+    secrets: inherit

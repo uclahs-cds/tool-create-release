@@ -16,3 +16,5 @@ permissions:
 jobs:
   update-alias:
     uses: ./.github/workflows/wf-alias-release.yaml
+    # Secrets are only required until tool-create-release is made public
+    secrets: inherit

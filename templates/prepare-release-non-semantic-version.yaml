@@ -22,5 +22,4 @@ jobs:
     with:
       bump_type: "exact"
       exact_version: ${{ inputs.version }}
-    secrets:
-      token: ${{ secrets.YOUR_PAT }}
+    secrets: inherit

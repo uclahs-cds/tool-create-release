@@ -29,5 +29,4 @@ jobs:
     with:
       bump_type: ${{ inputs.bump_type }}
       prerelease: ${{ inputs.prerelease }}
-    secrets:
-      token: ${{ secrets.YOUR_PAT }}
+    secrets: inherit

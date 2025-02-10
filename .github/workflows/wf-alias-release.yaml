@@ -1,24 +1,6 @@
 ---
 on:
   workflow_call:
-    inputs:
-      # These inputs are taken directly from stefanzweifel/git-auto-commit-action
-      commit-user-name:
-        type: string
-        description: Name used for the commit user
-        required: false
-        default: github-actions[bot]
-      commit-user-email:
-        type: string
-        description: Email address used for the commit user
-        required: false
-        default: 41898282+github-actions[bot]@users.noreply.github.com
-    secrets:
-      token:
-        description: >
-          Personal access token (PAT) used to fetch the repository. Required
-          if the repository has any private submodules.
-        required: false
 
 jobs:
   alias-release:
@@ -32,7 +14,7 @@ jobs:
         env:
           REPO: ${{ github.repository }}
           RUN_ID: ${{ github.run_id }}
-          GH_TOKEN: ${{ secrets.token || github.token }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           ACTION_DATA=$(gh api "repos/$REPO/actions/runs/$RUN_ID")
           echo "::debug::$ACTION_DATA"
@@ -45,6 +27,7 @@ jobs:
           repository: uclahs-cds/tool-create-release
           path: reusable
           ref: ${{ steps.workflow-parsing.outputs.SHA }}
+          token: ${{ secrets.UCLAHS_CDS_REPO_READ_TOKEN }}
 
       - name: Checkout calling repository
         uses: actions/checkout@v4
@@ -52,7 +35,6 @@ jobs:
           path: caller
           fetch-depth: 0
           fetch-tags: true
-          token: ${{ secrets.token || github.token }}
 
       - name: Set up python
         uses: actions/setup-python@v5
@@ -65,11 +47,9 @@ jobs:
       # Update the alias if necessary
       - id: alias-release
         run: |
-          git config --file "$REPO_DIR/.git/config" user.name "$COMMIT_USER"
-          git config --file "$REPO_DIR/.git/config" user.email "$COMMIT_EMAIL"
+          git config --file "$REPO_DIR/.git/config" user.name "github-actions[bot]"
+          git config --file "$REPO_DIR/.git/config" user.email "41898282+github-actions[bot]@users.noreply.github.com"
           alias-release "$REPO_DIR" "$GITHUB_REF"
         env:
           REPO_DIR: caller
-          GH_TOKEN: ${{ secrets.token || github.token }}
-          COMMIT_USER: ${{ inputs.commit-user-name }}
-          COMMIT_EMAIL: ${{ inputs.commit-user-email }}
+          GH_TOKEN: ${{ github.token }}

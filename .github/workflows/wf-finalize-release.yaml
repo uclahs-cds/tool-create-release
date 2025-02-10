@@ -6,18 +6,6 @@ on:
         description: If true (the default), draft the release for later manual approval.
         type: boolean
         default: true
-      attach-tarball:
-        description: If true, attach a tarball including all submodules to the release.
-        type: boolean
-        default: false
-
-    secrets:
-      token:
-        description: >
-          Personal access token (PAT) used to fetch the repository and submodules.
-          Required if `draft` is false (to allow triggering alias workflow) or if
-          `attach-tarball` is true _and_ one or more of the submodules are private.
-        required: false
 
 jobs:
   finalize-release:
@@ -31,7 +19,7 @@ jobs:
         env:
           REPO: ${{ github.repository }}
           RUN_ID: ${{ github.run_id }}
-          GH_TOKEN: ${{ secrets.token || github.token }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           ACTION_DATA=$(gh api "repos/$REPO/actions/runs/$RUN_ID")
           echo "::debug::$ACTION_DATA"
@@ -44,6 +32,7 @@ jobs:
           repository: uclahs-cds/tool-create-release
           path: reusable
           ref: ${{ steps.workflow-parsing.outputs.SHA }}
+          token: ${{ secrets.UCLAHS_CDS_REPO_READ_TOKEN }}
 
       - name: Set up python
         uses: actions/setup-python@v5
@@ -53,29 +42,9 @@ jobs:
       # Install the bundled package
       - run: pip install ./reusable
 
-      - name: Establish variables for tarball attachment
-        id: set-repo-name
-        run: |
-          REPO_NAME=$(echo "${{ github.repository }}" | cut -d'/' -f2)
-          echo "REPO_NAME=$REPO_NAME" >> "$GITHUB_OUTPUT"
-          mkdir source
-          echo "CLONE_PATH=source/$REPO_NAME" >> "$GITHUB_OUTPUT"
-
-      # Only check out the calling repository if we're going to attach a
-      # tarball to the release
-      - name: Clone repository to create tarball
-        uses: actions/checkout@v4
-        if: ${{ inputs.attach-tarball }}
-        with:
-          path: ${{ steps.set-repo-name.outputs.CLONE_PATH }}
-          submodules: 'recursive'
-          token: ${{ secrets.token || github.token }}
-
       - name: Finalize release
-        id: finalize-release
-        run: finalize-release "$DRAFT" --archival-path "$CLONE_PATH"
+        run: finalize-release "$DRAFT"
         env:
           DRAFT: ${{ inputs.draft }}
           # Use the other token to allow the aliasing workflow to run
-          GH_TOKEN: ${{ secrets.token || github.token }}
-          CLONE_PATH: ${{ steps.set-repo-name.outputs.CLONE_PATH }}
+          GH_TOKEN: ${{ secrets.UCLAHS_CDS_REPO_READ_TOKEN }}
