@@ -6,11 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Changed
+
+- Update version file regex to allow leading characters, like `Plugin-Version`
+
 ## [1.1.0] - 2025-02-10
 
 ### Fixed
 
-- Added `import mdformat.renderer` to fix issue with mdformat v0.7.22
+- Add `import mdformat.renderer` to fix issue with mdformat v0.7.22
 
 ## [1.0.3] - 2024-11-01
 

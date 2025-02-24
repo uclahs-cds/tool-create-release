@@ -15,6 +15,7 @@ VERSION_REGEX = re.compile(
     (?P<prefix>             # Open `prefix` capture group
         \s*                 # Any whitespace
         (?P<vquote>['"]?)   # `'`, `"`, or nothing (saved as `vquote` group)
+        (?:\w+?-?)?         # Optional word characters and optional literal `-`
         (?:__)?             # Optional literal `__`
         version             # Literal `version`
         (?:__)?             # Optional literal `__`

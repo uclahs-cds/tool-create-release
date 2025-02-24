@@ -84,6 +84,16 @@ version_strings = [
         """version 90304""",
         """version 2.3.4""",
     ),
+    (
+        # Leading prefix
+        """PluginVersion: 0.6.0""",
+        """PluginVersion: 2.3.4""",
+    ),
+    (
+        # Leading prefix and dash
+        """Plugin-Version: 0.6.0""",
+        """Plugin-Version: 2.3.4""",
+    ),
 ]
 
 
