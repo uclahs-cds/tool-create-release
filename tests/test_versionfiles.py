@@ -94,6 +94,19 @@ version_strings = [
         """Plugin-Version: 0.6.0""",
         """Plugin-Version: 2.3.4""",
     ),
+    (
+        # Almost but-not-quite Manifest-Version
+        """anifest-Version: 0.6.0""",
+        """anifest-Version: 2.3.4""",
+    ),
+]
+
+
+# A list of version-like strings that will _not_ be matched.
+unmatched_strings = [
+    # Java JAR manifest version
+    "Manifest-Version: 1.0",
+    "manifest-version: 1.0",
 ]
 
 
@@ -107,3 +120,15 @@ def test_version_updates(tmp_path, original, expected):
     version_file.write_text(original, encoding="utf-8")
     update_file(version, version_file)
     assert version_file.read_text(encoding="utf-8") == expected
+
+@pytest.mark.parametrize("unmatched_line", unmatched_strings)
+def test_negative_matches(tmp_path, unmatched_line):
+    """Confirm that the invalid version paths are _not_ matched."""
+    version = "2.3.4"
+
+    # Test the text alone (no trailing newline
+    version_file = tmp_path / "version.txt"
+    version_file.write_text(unmatched_line, encoding="utf-8")
+
+    with pytest.raises(ValueError):
+        update_file(version, version_file)
