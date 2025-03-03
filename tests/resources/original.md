@@ -40,3 +40,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Change two
 
 Stray text
+
+
+## [v2.4.0] 2023-01-01
+
+## Add
+
+- Added one
