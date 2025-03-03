@@ -107,12 +107,13 @@ class ChangelogVersion:
     # Regex to match versions, with or without dates
     # Will match:
     #   [1.2.3] - 2020-01-01
+    #   [1.2.3] 2020-01-01
     #   [badversion]
     #   1.2.3 - 2020-01-01
     #   1.2.3
     #   badversion
     heading_re: ClassVar = re.compile(
-        r"^\[?(?P<version_str>.+?)\]?(?:\s+-\s+(?P<date>.*))?$"
+        r"^\[?(?P<version_str>.+?)\]?(?:\s+(?:-\s+)?(?P<date>.*))?$"
     )
 
     # Regex to match versions with leading `v`s (for removal)
