@@ -27,7 +27,7 @@ jobs:
           echo "SHA=$SHA" >> "$GITHUB_OUTPUT"
 
       - name: Checkout reusable repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: uclahs-cds/tool-create-release
           path: reusable
