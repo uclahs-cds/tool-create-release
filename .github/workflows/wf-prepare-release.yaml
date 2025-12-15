@@ -102,7 +102,7 @@ jobs:
           VERSIONFILES: ${{ inputs.version_files }}
 
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.UCLAHS_CDS_REPO_READ_TOKEN }}
           path: caller
